@@ -3,10 +3,18 @@
 import type { ID, ISODate, LessonLog, Participation } from '../domain/types';
 
 export const RATINGS = [1, 2, 3, 4, 5] as const;
-/** A rating at or below this counts as low. */
-export const LOW_RATING = 2;
-/** Flag a student after this many low-rated lessons in a row. */
-export const LOW_STREAK = 3;
+/**
+ * When a student is flagged: rated at or below `low` in each of their last `streak`
+ * rated lessons. Teachers can change both in Settings.
+ */
+export interface FlagRule {
+  low: number;
+  streak: number;
+}
+export const DEFAULT_FLAG_RULE: FlagRule = { low: 2, streak: 3 };
+/** Kept for places that only need the defaults. */
+export const LOW_RATING = DEFAULT_FLAG_RULE.low;
+export const LOW_STREAK = DEFAULT_FLAG_RULE.streak;
 
 export interface HistoryPoint {
   logId: ID;
@@ -27,18 +35,18 @@ export function studentHistory(studentId: ID, logs: LogLike[], parts: Pick<Parti
 }
 
 /** How many of the most recent rated lessons in a row were low (absent/unrated lessons are skipped). */
-export function lowStreak(history: HistoryPoint[]): number {
+export function lowStreak(history: HistoryPoint[], rule: FlagRule = DEFAULT_FLAG_RULE): number {
   let n = 0;
   for (let i = history.length - 1; i >= 0; i--) {
     const h = history[i];
     if (h.absent || h.rating === null) continue;
-    if (h.rating <= LOW_RATING) n++;
+    if (h.rating <= rule.low) n++;
     else break;
   }
   return n;
 }
 
-export const isFlagged = (history: HistoryPoint[]) => lowStreak(history) >= LOW_STREAK;
+export const isFlagged = (history: HistoryPoint[], rule: FlagRule = DEFAULT_FLAG_RULE) => lowStreak(history, rule) >= rule.streak;
 
 export interface StudentStats {
   average: number | null;
@@ -51,10 +59,10 @@ export interface StudentStats {
   flagged: boolean;
 }
 
-export function studentStats(history: HistoryPoint[]): StudentStats {
+export function studentStats(history: HistoryPoint[], rule: FlagRule = DEFAULT_FLAG_RULE): StudentStats {
   const rated = history.filter((h) => !h.absent && h.rating !== null);
   const attended = history.filter((h) => !h.absent).length;
-  const streak = lowStreak(history);
+  const streak = lowStreak(history, rule);
   return {
     average: rated.length ? rated.reduce((s, h) => s + h.rating!, 0) / rated.length : null,
     rated: rated.length,
@@ -62,7 +70,7 @@ export function studentStats(history: HistoryPoint[]): StudentStats {
     lessons: history.length,
     attendance: history.length ? attended / history.length : null,
     streak,
-    flagged: streak >= LOW_STREAK,
+    flagged: streak >= rule.streak,
   };
 }
 

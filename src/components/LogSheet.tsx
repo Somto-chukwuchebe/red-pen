@@ -10,7 +10,8 @@ import { deleteLog, saveLog, type LogDraft } from '../db/logs';
 import type { ID, ISODate, LogStatus } from '../domain/types';
 import { useT } from '../i18n';
 import { shortDate } from '../lib/format';
-import { LOW_STREAK, lowStreak, studentHistory } from '../lib/participation';
+import { lowStreak, studentHistory } from '../lib/participation';
+import { useFlagRule } from '../db/hooks';
 import { orderedLessons, pointerAfterLog } from '../lib/pointer';
 import { LowFlag, RatingPicker } from './Rating';
 import { useToast } from './Toast';
@@ -98,7 +99,8 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
   }, [data, draft, target.date, target.occurrenceKey]);
 
   const ordered = useMemo(() => (data ? orderedLessons(data.modules, data.lessons) : []), [data]);
-  const streaks = useMemo(() => new Map((data?.students ?? []).map((s) => [s.id, lowStreak(studentHistory(s.id, data!.history, data!.historyParts))])), [data]);
+  const rule = useFlagRule();
+  const streaks = useMemo(() => new Map((data?.students ?? []).map((s) => [s.id, lowStreak(studentHistory(s.id, data!.history, data!.historyParts), rule)])), [data, rule.low, rule.streak]); // eslint-disable-line react-hooks/exhaustive-deps
   const lessonById = useMemo(() => new Map(data?.lessons.map((l) => [l.id, l]) ?? []), [data]);
   const moduleById = useMemo(() => new Map(data?.modules.map((m) => [m.id, m]) ?? []), [data]);
   const plannedGames = useLiveQuery(async () => {
@@ -264,7 +266,7 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
                           </button>
                           <span className={cx('flex min-w-0 flex-1 items-center gap-2 font-medium', absent && 'text-ink-soft line-through')}>
                             <span className="truncate">{s.name}</span>
-                            {streak >= LOW_STREAK && !absent && <LowFlag streak={streak} compact />}
+                            {streak >= rule.streak && !absent && <LowFlag streak={streak} compact />}
                           </span>
                           <RatingPicker
                             label={`${t.log.participation}: ${s.name}`}

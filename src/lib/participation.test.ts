@@ -23,6 +23,15 @@ describe('participation ratings', () => {
     expect(isFlagged(better)).toBe(false);
   });
 
+  it('follows the teacher’s own rule', () => {
+    const logs = [log('a', '2026-09-01'), log('b', '2026-09-03'), log('c', '2026-09-08')];
+    const h = studentHistory('s', logs, [p('a', 3), p('b', 3), p('c', 2)]);
+    expect(isFlagged(h)).toBe(false); // default: 1–2, three in a row
+    expect(isFlagged(h, { low: 3, streak: 3 })).toBe(true); // stricter: 1–3
+    expect(isFlagged(h, { low: 2, streak: 1 })).toBe(true);
+    expect(studentStats(h, { low: 1, streak: 2 }).flagged).toBe(false);
+  });
+
   it('ignores cancelled lessons and works out averages and attendance', () => {
     const logs = [log('a', '2026-09-01'), log('b', '2026-09-03', { status: 'cancelled' }), log('c', '2026-09-08', { absentStudentIds: ['s'] }), log('d', '2026-09-10')];
     const stats = studentStats(studentHistory('s', logs, [p('a', 3), p('d', 5)]));

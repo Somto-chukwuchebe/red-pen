@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Check, ExternalLink, Pencil } from 'lucide-react';
+import { ArrowLeft, Check, ExternalLink, Pencil, Presentation } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { LogSheet, type LogTarget } from '../components/LogSheet';
@@ -69,8 +69,11 @@ export function LessonPage() {
           {longDate(t.locale, date)}
           {start && ` · ${start}`}
         </span>
+        <LinkButton to={`/tools?group=${group.id}`} size="sm" className="ml-auto">
+          <Presentation size={16} aria-hidden /> {t.nav.tools}
+        </LinkButton>
         {lesson && (
-          <LinkButton to={`/plan/${lesson.id}?group=${group.id}`} size="sm" className="ml-auto">
+          <LinkButton to={`/plan/${lesson.id}?group=${group.id}`} size="sm">
             <Pencil size={16} aria-hidden /> {t.planner.planIt}
           </LinkButton>
         )}

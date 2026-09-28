@@ -2,6 +2,7 @@
 
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Group, Settings } from '../domain/types';
+import { DEFAULT_FLAG_RULE, type FlagRule } from '../lib/participation';
 import type { ScheduleData } from '../lib/schedule';
 import { db } from './db';
 import { SETTINGS_ID } from './seed';
@@ -35,4 +36,10 @@ export function useScheduleData(): ScheduleData | undefined {
     ]);
     return { calendar: settings, versions, slots, changes, groups };
   }, []);
+}
+
+/** The teacher's rule for flagging low participation (Settings), or the default. */
+export function useFlagRule(): FlagRule {
+  const s = useSettings();
+  return { low: s?.flagLow ?? DEFAULT_FLAG_RULE.low, streak: s?.flagStreak ?? DEFAULT_FLAG_RULE.streak };
 }

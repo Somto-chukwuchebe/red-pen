@@ -31,6 +31,11 @@
   --rate-ink-3: #1f2a44;
   --rate-ink-4: #ffffff;
   --rate-ink-5: #ffffff;
+  /* Scoreboard teams: blue, orange, aqua, violet (colour-blind separation checked). */
+  --team-1: #2a78d6;
+  --team-2: #eb6834;
+  --team-3: #1baf7a;
+  --team-4: #4a3aa7;
 }
 .dark {
   --paper: #16181d;
@@ -56,6 +61,10 @@
   --rate-ink-3: #ece7dc;
   --rate-ink-4: #16181d;
   --rate-ink-5: #16181d;
+  --team-1: #3987e5;
+  --team-2: #d95926;
+  --team-3: #199e70;
+  --team-4: #9085e9;
 }
 
 @theme inline {

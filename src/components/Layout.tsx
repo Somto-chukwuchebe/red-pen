@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, CalendarRange, ChartLine, Dices, Download, House, Menu, Settings, Share2, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarRange, ChartLine, Dices, Download, House, Menu, Presentation, Settings, Share2, Users } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { useT } from '../i18n';
@@ -27,13 +27,14 @@ export function Layout() {
   ];
   const library: Item = { to: '/library', label: t.nav.library, icon: <Dices size={22} /> };
   const progress: Item = { to: '/progress', label: t.nav.progress, icon: <ChartLine size={22} /> };
+  const tools: Item = { to: '/tools', label: t.nav.tools, icon: <Presentation size={22} /> };
   const extra: Item[] = [
     { to: '/timetable', label: t.nav.timetable, icon: <CalendarDays size={22} /> },
     { to: '/data', label: t.nav.data, icon: <Share2 size={22} /> },
     { to: '/settings', label: t.nav.settings, icon: <Settings size={22} /> },
     { to: '/install', label: t.nav.install, icon: <Download size={22} /> },
   ];
-  const moreActive = ['/more', '/library', '/progress', ...extra.map((e) => e.to)].some((p) => pathname.startsWith(p));
+  const moreActive = ['/more', '/library', '/progress', '/tools', ...extra.map((e) => e.to)].some((p) => pathname.startsWith(p));
 
   return (
     <div className="min-h-dvh md:flex">
@@ -48,7 +49,7 @@ export function Layout() {
           <Logo size={34} />
           <span className="font-serif text-2xl font-semibold">{t.appName}</span>
         </div>
-        {[...main, library, progress].map((i) => (
+        {[...main, library, progress, tools].map((i) => (
           <SideLink key={i.to} {...i} />
         ))}
         <div className="my-3 border-t border-line" />

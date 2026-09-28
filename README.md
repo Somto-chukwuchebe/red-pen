@@ -1,6 +1,6 @@
 # Red Pen
 
-A teaching workspace: today's lessons, the year's curriculum, the timetable, groups, a 30-second lesson log, a lesson planner with activity ideas, and a games and resources library. Progress tracking and classroom projector tools come next. Built for English speaking clubs, and usable by any teacher.
+A teaching workspace: today's lessons, the year's curriculum, the timetable, groups, a 30-second lesson log, a lesson planner with activity ideas, and a games and resources library. Progress tracking, and classroom tools for the projector. Built for English speaking clubs, and usable by any teacher.
 
 - **Works offline.** Once opened, everything is cached on the device.
 - **Private.** No accounts, no server. Children's names and notes never leave your devices.
@@ -37,7 +37,7 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
 
   The group then moves on to its next planned lesson automatically. Cancelled lessons and test-week reviews don't move it on, and you can change where it goes under "Next time".
 
-  **Low participation:** a child rated 1–2 in each of their last 3 or more rated lessons (absences and unrated lessons are skipped) is flagged in amber ⚠ in the log, on the group page and on **Progress**.
+  **Low participation:** by default, a child rated 1–2 in each of their last 3 or more rated lessons (absences and unrated lessons are skipped) is flagged in amber ⚠ in the log, on the group page and on **Progress**. You can change where the flag starts in **Settings → Participation flags**: what counts as low (1 only, 1–2 or 1–3) and how many lessons in a row (2–6).
 - **Week** shows the whole week: planned, taught, not logged yet (amber) and cancelled. Tap a lesson to log it or edit its log.
 - **Groups → a group** has:
   - the progress bar and "Change the next lesson";
@@ -48,6 +48,21 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
   - the lesson history, with an **Attendance (CSV)** export for Excel or Google Sheets;
   - **Term summary**: a short report for the term (English or Russian, with or without names) to copy into a message, plus a per-student spreadsheet.
 - **Progress** (sidebar, or **More** on phones) shows every group's coverage against where the plan says it should be by now (from the module months, or the school weeks gone), and every student who needs attention.
+
+### Classroom tools (for the projector)
+
+**Tools** (sidebar, **More** on phones, or the **Tools** button on the Start lesson screen) opens big, simple screens for the board. **Full screen** hides everything else, and **Esc** goes back to the list of tools. The group you pick is remembered.
+
+| Tool | What it does | Keys |
+|---|---|---|
+| **Random student** | Picks a name from the group. Nobody is picked twice until everyone has had a turn, and the same child is never picked twice in a row across rounds. **New round** starts again. | Space or Enter: pick |
+| **Scoreboard** | 2–4 teams with big + and − buttons. Team names can be edited; scores are kept until you reset. | 1–4: add a point · Shift+1–4: take one away |
+| **Timer** | 1, 2, 3, 5 or 10 minutes, or your own time. Beeps at the end. It works from the clock, so it stays right even if the screen sleeps. | Space: start/pause · R: reset |
+| **Dice** | 1–3 dice, with the total. | Space or Enter: roll |
+| **Spinner wheel** | Your own list, the group's names, or the key words of the next lesson. Can remove each result so it doesn't come up again. | Space or Enter: spin |
+| **Lesson stages** | Walks through the next lesson's plan (or your lesson framework) with a countdown for each stage and the time left in the lesson. Beeps once when a stage's time is up, then shows overtime in amber. | Space: start/pause · ←/→: stage |
+
+On iPhone the beep only plays after you've tapped the screen once, and not when the phone is on silent.
 
 ### Planning and the library
 
@@ -240,9 +255,10 @@ src/
   domain/types.ts        the data model
   db/                    database schema, saving/deleting, first-run setup, backups
   lib/                   pure logic: calendar, schedule, timetable checks, lesson pointer, stages,
-                         activity ideas (lib/ideas), platform detection
+                         activity ideas (lib/ideas), participation flags, progress, term summary,
+                         classroom tools (picker, dice, wheel, clocks), sounds, platform detection
   i18n/en.ts, ru.ts      every piece of text in English and Russian
-  pages/                 the screens
+  pages/                 the screens (pages/tools: the classroom tools)
   components/            shared building blocks
   import/                reading a curriculum document (Word or PDF)
   seed/                  example groups and the default calendar

@@ -4,11 +4,11 @@ import { Link } from 'react-router';
 import { LowFlag, ratingStyle } from '../components/Rating';
 import { Card, EmptyState, GroupDot, PageHeader, SectionTitle, cx } from '../components/ui';
 import { db } from '../db/db';
-import { useSettings } from '../db/hooks';
+import { useFlagRule, useSettings } from '../db/hooks';
 import { useT } from '../i18n';
 import { todayISO } from '../lib/dates';
 import { dayMonth } from '../lib/format';
-import { LOW_STREAK, studentHistory, studentStats } from '../lib/participation';
+import { studentHistory, studentStats } from '../lib/participation';
 import { orderedLessons } from '../lib/pointer';
 import { groupProgress, type GroupProgress } from '../lib/progress';
 
@@ -16,6 +16,7 @@ import { groupProgress, type GroupProgress } from '../lib/progress';
 export function ProgressPage() {
   const t = useT();
   const settings = useSettings();
+  const rule = useFlagRule();
   const today = todayISO();
 
   const data = useLiveQuery(async () => {
@@ -37,7 +38,7 @@ export function ProgressPage() {
     const prog = groupProgress(settings, mods, orderedLessons(mods, ls), new Map(ls.map((l) => [l.id, l.moduleId])), g.currentPlannedLessonId, today);
     const logs = data.logs.filter((l) => l.groupId === g.id);
     const students = data.students.filter((s) => s.groupId === g.id);
-    const stats = students.map((s) => ({ s, h: studentHistory(s.id, logs, data.participation) })).map(({ s, h }) => ({ s, st: studentStats(h), recent: h.filter((x) => !x.absent && x.rating !== null).slice(-3) }));
+    const stats = students.map((s) => ({ s, h: studentHistory(s.id, logs, data.participation) })).map(({ s, h }) => ({ s, st: studentStats(h, rule), recent: h.filter((x) => !x.absent && x.rating !== null).slice(-Math.max(3, rule.streak)) }));
     return { g, prog, stats, logs };
   });
   const flagged = rows.flatMap((r) => r.stats.filter((x) => x.st.flagged).map((x) => ({ ...x, g: r.g })));
@@ -67,7 +68,7 @@ export function ProgressPage() {
       {/* Students who need attention */}
       <Card className="mb-6">
         <SectionTitle>{t.progress.attentionTitle}</SectionTitle>
-        <p className="mb-3 text-sm text-ink-soft">{t.progress.attentionHint(LOW_STREAK)}</p>
+        <p className="mb-3 text-sm text-ink-soft">{t.progress.attentionHint(rule.low, rule.streak)}</p>
         {flagged.length === 0 ? (
           <p className="text-ink-soft">{t.progress.noneFlagged}</p>
         ) : (
@@ -121,7 +122,7 @@ export function ProgressPage() {
                       </>
                     )}
                     {classAvg !== null && <span className="ml-auto text-sm text-ink-soft">{t.progress.participationAvg(classAvg.toFixed(1))}</span>}
-                    {stats.some((x) => x.st.flagged) && <LowFlag streak={LOW_STREAK} compact />}
+                    {stats.some((x) => x.st.flagged) && <LowFlag streak={rule.streak} compact />}
                   </div>
                   {prog.state !== 'none' && (
                     // A meter: covered so far on a lighter track of the same hue; the tick marks where the plan says the group should be.

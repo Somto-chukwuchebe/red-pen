@@ -10,7 +10,7 @@ import { useToast } from '../components/Toast';
 import { BareInput, Button, Card, Dialog, EmptyState, LinkButton, SectionTitle, Segmented, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
 import { shareOrDownload } from '../db/backup';
 import { db } from '../db/db';
-import { useSettings } from '../db/hooks';
+import { useFlagRule, useSettings } from '../db/hooks';
 import { curriculumOrder } from '../db/logs';
 import { newId, patch, remove, save } from '../db/repo';
 import type { CanDoLevel, CanDoMark, CanDoStatement, Group, ID, Student } from '../domain/types';
@@ -19,7 +19,7 @@ import { attendanceRows, toCsv } from '../lib/csv';
 import { todayISO } from '../lib/dates';
 import { shortDate } from '../lib/format';
 import { isTouchPhone } from '../lib/platform';
-import { isFlagged, LOW_STREAK, studentHistory } from '../lib/participation';
+import { isFlagged, studentHistory } from '../lib/participation';
 import { progressFraction } from '../lib/pointer';
 import { GroupEditor } from './GroupsPage';
 
@@ -28,6 +28,7 @@ export function GroupPage() {
   const navigate = useNavigate();
   const { id = '' } = useParams();
   const settings = useSettings();
+  const rule = useFlagRule();
   const [editing, setEditing] = useState(false);
   const [logTarget, setLogTarget] = useState<LogTarget | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -47,7 +48,7 @@ export function GroupPage() {
   if (data === undefined || !settings) return null;
   if (data === null) return <EmptyState title={t.groupPage.notFound} />;
   const { group, modules, lessons, students, logs, ordered, participation } = data;
-  const flaggedCount = students.filter((s) => s.active && isFlagged(studentHistory(s.id, logs, participation))).length;
+  const flaggedCount = students.filter((s) => s.active && isFlagged(studentHistory(s.id, logs, participation), rule)).length;
   const lessonById = new Map(lessons.map((l) => [l.id, l]));
   const moduleById = new Map(modules.map((m) => [m.id, m]));
   const pointer = group.currentPlannedLessonId ? lessonById.get(group.currentPlannedLessonId) : undefined;
@@ -154,7 +155,7 @@ export function GroupPage() {
           <Card className="lg:col-span-2">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <SectionTitle className="!mb-0">{t.log.participation}</SectionTitle>
-              {flaggedCount > 0 && <LowFlag streak={LOW_STREAK} />}
+              {flaggedCount > 0 && <LowFlag streak={rule.streak} />}
             </div>
             <div className="flex flex-col gap-5">
               <ClassTrend logs={logs} participation={participation} />

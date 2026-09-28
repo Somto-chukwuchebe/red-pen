@@ -20,6 +20,13 @@ import { SettingsPage } from './pages/SettingsPage';
 import { SetupWizard } from './pages/SetupWizard';
 import { TimetablePage } from './pages/TimetablePage';
 import { TodayPage } from './pages/TodayPage';
+import { DiceTool } from './pages/tools/DiceTool';
+import { PickerTool } from './pages/tools/PickerTool';
+import { ScoreboardTool } from './pages/tools/ScoreboardTool';
+import { StagesTool } from './pages/tools/StagesTool';
+import { TimerTool } from './pages/tools/TimerTool';
+import { ToolsHome } from './pages/tools/ToolsHome';
+import { WheelTool } from './pages/tools/WheelTool';
 import { WeekPage } from './pages/WeekPage';
 
 // Hash-based addresses (#/today) work on GitHub Pages and inside the future
@@ -38,6 +45,13 @@ const router = createHashRouter([
       { path: 'print/:lessonId', element: <PrintCardPage /> },
       { path: 'library', element: <LibraryPage /> },
       { path: 'progress', element: <ProgressPage /> },
+      { path: 'tools', element: <ToolsHome /> },
+      { path: 'tools/picker', element: <PickerTool /> },
+      { path: 'tools/scoreboard', element: <ScoreboardTool /> },
+      { path: 'tools/timer', element: <TimerTool /> },
+      { path: 'tools/dice', element: <DiceTool /> },
+      { path: 'tools/wheel', element: <WheelTool /> },
+      { path: 'tools/stages', element: <StagesTool /> },
       { path: 'groups', element: <GroupsPage /> },
       { path: 'groups/:id', element: <GroupPage /> },
       { path: 'curriculum', element: <CurriculumPage /> },

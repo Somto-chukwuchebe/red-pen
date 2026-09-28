@@ -264,6 +264,10 @@ export interface Settings extends Stamped {
   /** The subject this teacher teaches (e.g. "English"). Missing on devices set up before the wizard = English. */
   subject?: string;
   teacherName?: string;
+  /** Participation flag: ratings at or below this are low (default 2). */
+  flagLow?: number;
+  /** Participation flag: this many low-rated lessons in a row (default 3). */
+  flagStreak?: number;
 }
 
 /** Removed records are remembered so a merge doesn't bring them back. */

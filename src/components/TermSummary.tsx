@@ -3,7 +3,7 @@ import { Copy, Download } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { shareOrDownload } from '../db/backup';
 import { db } from '../db/db';
-import { useSettings } from '../db/hooks';
+import { useFlagRule, useSettings } from '../db/hooks';
 import type { Group } from '../domain/types';
 import { dictionaries, useT } from '../i18n';
 import { quarterFor } from '../lib/calendar';
@@ -19,6 +19,7 @@ export function TermSummaryDialog({ group, onClose }: { group: Group; onClose: (
   const t = useT();
   const toast = useToast();
   const settings = useSettings();
+  const rule = useFlagRule();
   const [termIndex, setTermIndex] = useState<number | null>(null);
   const [lang, setLang] = useState<'en' | 'ru'>(settings?.language ?? 'en');
   const [includeNames, setIncludeNames] = useState(true);
@@ -57,10 +58,11 @@ export function TermSummaryDialog({ group, onClose }: { group: Group; onClose: (
         teacherName: settings.teacherName,
         includeNames,
         locale: dictionaries[lang].locale,
+        rule,
       },
       lang,
     );
-  }, [data, term, settings, group, includeNames, lang]);
+  }, [data, term, settings, group, includeNames, lang, rule]);
 
   async function copy() {
     try {
@@ -74,7 +76,7 @@ export function TermSummaryDialog({ group, onClose }: { group: Group; onClose: (
   async function exportCsv() {
     if (!data || !term) return;
     const h = t.summary.csv;
-    const rows = progressRows(term, data.logs, data.students, data.participation, data.statements, data.marks, h, t.groupPage.levels);
+    const rows = progressRows(term, data.logs, data.students, data.participation, data.statements, data.marks, h, t.groupPage.levels, rule);
     const blob = new Blob([toCsv(rows)], { type: 'text/csv;charset=utf-8' });
     await shareOrDownload(blob, `${group.name.replace(/[^\p{L}\p{N}]+/gu, '-')}-${term.name.replace(/\s+/g, '')}-progress.csv`, isTouchPhone());
   }

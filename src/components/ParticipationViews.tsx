@@ -4,13 +4,15 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import type { LessonLog, Participation, Student } from '../domain/types';
 import { useT } from '../i18n';
 import { dayMonth } from '../lib/format';
-import { classAverages, LOW_STREAK, studentHistory, studentStats } from '../lib/participation';
+import { useFlagRule } from '../db/hooks';
+import { classAverages, studentHistory, studentStats } from '../lib/participation';
 import { LowFlag, ratingStyle } from './Rating';
 import { cx } from './ui';
 
 /** Students × their last lessons. Each cell shows the rating (number + shade) or "abs". */
 export function ParticipationGrid({ students, logs, participation, lessons = 8 }: { students: Student[]; logs: LessonLog[]; participation: Participation[]; lessons?: number }) {
   const t = useT();
+  const rule = useFlagRule();
   const recent = logs
     .filter((l) => l.status !== 'cancelled')
     .sort((a, b) => a.date.localeCompare(b.date) || a.updatedAt - b.updatedAt)
@@ -35,13 +37,13 @@ export function ParticipationGrid({ students, logs, participation, lessons = 8 }
         </thead>
         <tbody>
           {students.map((s) => {
-            const st = studentStats(studentHistory(s.id, logs, participation));
+            const st = studentStats(studentHistory(s.id, logs, participation), rule);
             return (
               <tr key={s.id}>
                 <th scope="row" className="sticky left-0 bg-card px-2 py-1 text-left font-medium">
                   <span className="flex items-center gap-2 whitespace-nowrap">
                     {s.name}
-                    {st.streak >= LOW_STREAK && <LowFlag streak={st.streak} compact />}
+                    {st.flagged && <LowFlag streak={st.streak} compact />}
                   </span>
                 </th>
                 {recent.map((l) => {

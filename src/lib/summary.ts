@@ -2,7 +2,7 @@
 // and a per-student spreadsheet.
 
 import type { CanDoLevel, CanDoMark, CanDoStatement, DateRange, Group, LessonLog, Module, Participation, PlannedLesson, Student } from '../domain/types';
-import { classAverages, studentHistory, studentStats } from './participation';
+import { classAverages, studentHistory, studentStats, type FlagRule } from './participation';
 
 export interface SummaryInput {
   group: Pick<Group, 'name'>;
@@ -17,6 +17,7 @@ export interface SummaryInput {
   teacherName?: string;
   includeNames: boolean;
   locale: string;
+  rule?: FlagRule;
 }
 
 const fmt = (locale: string, d: string) => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' }).format(new Date(`${d}T12:00:00`));
@@ -32,7 +33,7 @@ export function termSummary(input: SummaryInput, lang: 'en' | 'ru'): string {
   const taught = logs.filter((l) => l.status !== 'cancelled');
   const cancelled = logs.length - taught.length;
   const active = students.filter((s) => s.active);
-  const stats = active.map((s) => ({ s, st: studentStats(studentHistory(s.id, taught, participation)) }));
+  const stats = active.map((s) => ({ s, st: studentStats(studentHistory(s.id, taught, participation), input.rule) }));
   const attendance = stats.filter((x) => x.st.lessons).map((x) => x.st.attendance!);
   const avgAttendance = attendance.length ? attendance.reduce((a, b) => a + b, 0) / attendance.length : null;
   const classAvg = classAverages(taught, participation);
@@ -98,12 +99,13 @@ export function progressRows(
   marks: Pick<CanDoMark, 'statementId' | 'studentId' | 'level'>[],
   headers: { student: string; lessons: string; attended: string; attendance: string; average: string; recent: string; flag: string },
   levelNames: Record<string, string>,
+  rule?: FlagRule,
 ): unknown[][] {
   const inTerm = logs.filter((l) => l.date >= term.start && l.date <= term.end && l.status !== 'cancelled');
   const rows: unknown[][] = [[headers.student, headers.lessons, headers.attended, headers.attendance, headers.average, headers.recent, headers.flag, ...statements.map((s) => s.text)]];
   for (const s of students.filter((x) => x.active)) {
     const h = studentHistory(s.id, inTerm, participation);
-    const st = studentStats(h);
+    const st = studentStats(h, rule);
     const recent = h.filter((x) => !x.absent && x.rating !== null).slice(-3).map((x) => x.rating);
     rows.push([
       s.name,

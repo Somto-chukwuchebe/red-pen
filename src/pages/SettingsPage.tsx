@@ -2,13 +2,14 @@ import { ShieldCheck, ShieldAlert } from 'lucide-react';
 import { CurriculumImport } from '../components/CurriculumImport';
 import { CalendarFields, cleanCalendar, type CalendarValue } from '../components/CalendarFields';
 import { useEffect, useState } from 'react';
-import { Banner, Button, Card, PageHeader, Segmented, SectionTitle, TextInput } from '../components/ui';
+import { Banner, Button, Select, Card, PageHeader, Segmented, SectionTitle, TextInput } from '../components/ui';
 import { useToast } from '../components/Toast';
 import { useLocal, useSettings } from '../db/hooks';
 import { patch, setLocal } from '../db/repo';
 import type { Settings } from '../domain/types';
 import { useT } from '../i18n';
 import { checkCalendar } from '../lib/calendar';
+import { DEFAULT_FLAG_RULE } from '../lib/participation';
 import { bytes } from '../lib/format';
 import { detectPlatform } from '../lib/platform';
 import { requestPersistentStorage, storageState, type PersistState } from '../lib/storage';
@@ -49,6 +50,28 @@ export function SettingsPage() {
         <Card>
           <SectionTitle>{t.settings.year}</SectionTitle>
           <CalendarEditor settings={settings} onSave={(c) => set(c).then(() => toast(t.common.saved))} />
+        </Card>
+
+        <Card>
+          <SectionTitle>{t.settings.flagsTitle}</SectionTitle>
+          <p className="mb-4 text-sm text-ink-soft">{t.settings.flagsHint}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Select label={t.settings.flagLow} value={settings.flagLow ?? DEFAULT_FLAG_RULE.low} onChange={(e) => set({ flagLow: Number(e.target.value) })}>
+              {[1, 2, 3].map((n) => (
+                <option key={n} value={n}>
+                  {t.settings.flagLowOption(n, t.rating.levels.slice(0, n).join(', '))}
+                </option>
+              ))}
+            </Select>
+            <Select label={t.settings.flagStreak} value={settings.flagStreak ?? DEFAULT_FLAG_RULE.streak} onChange={(e) => set({ flagStreak: Number(e.target.value) })}>
+              {[2, 3, 4, 5, 6].map((n) => (
+                <option key={n} value={n}>
+                  {t.settings.flagStreakOption(n)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <p className="mt-3 text-sm font-medium">{t.settings.flagSummary(settings.flagLow ?? DEFAULT_FLAG_RULE.low, settings.flagStreak ?? DEFAULT_FLAG_RULE.streak)}</p>
         </Card>
 
         <Card>
