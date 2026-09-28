@@ -52,6 +52,7 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
   - **Lesson card** prints a one-page plan, or saves it as a PDF.
 - **Parallel groups** (e.g. 2a and 2b) share a curriculum, so they share each lesson's plan. In the planner, **Teach this next** gives another group the same lesson next; log each group separately.
 - **Library** (sidebar, or **More** on phones) holds your games and resources. Levels run from kindergarten through grades 1–11 (write ranges like `KG–4`, `5–11` or `3`). Search and filter by level, skill, energy, prep time and projector. Choose a group to see what you've played with it, least recent first. Add, edit or delete anything, and attach a link or a file (stored on the device and included in backups). New teachers can add a starter set of 22 classic games, written for Red Pen, and edit them freely.
+- **Suggested online resources** (Library → Resources) lists about 60 websites chosen for the teacher's subject: English, other languages, Russian, maths, science, music, art, history and geography, plus tools for any subject. They include Russian platforms such as Учи.ру, ЯКласс, Skysmart, РЭШ and МЭШ. Each shows its grades and cost and whether it's in Russian, and flags YouTube-based videos, which are slow in Russia. **Add to my library** makes it your own editable resource. The list is in `src/seed/suggestedResources.ts`.
 - **Curriculum → Edit** lets you add, edit, reorder and delete modules and lessons, or create a new curriculum from scratch.
 
 ---

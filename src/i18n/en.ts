@@ -599,6 +599,21 @@ export const en = {
     confirmDelete: (name: string) => `Delete “${name}”? This can’t be undone.`,
   },
 
+  suggested: {
+    title: 'Suggested online resources',
+    intro: 'Hand-picked websites for your subject. Add any of them to your library to link them to lessons.',
+    subject: 'For',
+    subjects: { english: 'English', languages: 'Other languages', russian: 'Russian language & literature', maths: 'Maths', science: 'Science', music: 'Music', art: 'Art', humanities: 'History & geography', any: 'Any subject' } as Record<string, string>,
+    russiaNote: 'International sites are sometimes slow or unavailable in Russia; Russian platforms (Учи.ру, ЯКласс, Skysmart, РЭШ, МЭШ) are the most reliable. Check a site on the school network before a lesson depends on it.',
+    cost: { free: 'Free', account: 'Free with an account', 'paid-extras': 'Free, with paid extras' } as Record<string, string>,
+    russianSite: 'In Russian',
+    youtube: 'Videos on YouTube (slow in Russia)',
+    open: 'Open',
+    add: 'Add to my library',
+    inLibrary: 'In your library',
+    added: (name: string) => `Added ${name} to your library`,
+  },
+
   setup: {
     title: 'Welcome to Red Pen',
     stepOf: (n: number, total: number) => `Step ${n} of ${total}`,

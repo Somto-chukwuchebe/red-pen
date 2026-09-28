@@ -13,6 +13,7 @@ import { ALL_LEVELS, parseLevels } from '../import/text';
 import { dayMonth } from '../lib/format';
 import { gameUsage } from '../lib/usage';
 import { STARTER_COUNT, starterGames } from '../seed/starterGames';
+import { subjectTags, suggestionsFor, suggestionToResource, type SubjectTag, type Suggestion } from '../seed/suggestedResources';
 
 type Tab = 'games' | 'resources';
 export const SKILLS = ['speaking', 'listening', 'vocabulary', 'grammar', 'reading', 'writing', 'movement', 'review'] as const;
@@ -210,9 +211,88 @@ export function LibraryPage() {
       )}
       {(tab === 'games' ? shownGames.length === 0 && games.length > 0 : shownRes.length === 0 && resources.length > 0) && <p className="mt-4 text-ink-soft">{t.library.noMatches}</p>}
 
+      {tab === 'resources' && <SuggestedResources resources={resources} subject={settings.subject} lang={settings.language} level={level} q={q} />}
+
       {editGame && <GameEditor game={editGame} onClose={() => setEditGame(null)} usageText={usage.get(editGame.id) ? t.library.used(usage.get(editGame.id)!.count, dayMonth(t.locale, usage.get(editGame.id)!.last)) : ''} />}
       {editRes && <ResourceEditor resource={editRes} onClose={() => setEditRes(null)} />}
     </>
+  );
+}
+
+// ─── Suggested online resources ─────────────────────────────────────────
+
+const SUBJECT_TAGS: SubjectTag[] = ['english', 'languages', 'russian', 'maths', 'science', 'music', 'art', 'humanities', 'any'];
+const sameSite = (a: string, b: string) => a.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '') === b.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+
+function SuggestedResources({ resources, subject, lang, level, q }: { resources: Resource[]; subject?: string; lang: 'en' | 'ru'; level: string; q: string }) {
+  const t = useT();
+  const toast = useToast();
+  const [tag, setTag] = useState<SubjectTag>(subjectTags(subject)[0]);
+  const text = q.trim().toLowerCase();
+  const list = suggestionsFor(tag, level || undefined).filter((x) => !text || `${x.name} ${x.en} ${x.ru}`.toLowerCase().includes(text));
+  const inLibrary = (x: Suggestion) => resources.some((r) => r.id === `sugg-${x.id}` || (r.link && sameSite(r.link, x.url)));
+
+  async function add(x: Suggestion) {
+    await db.resources.put(suggestionToResource(x, lang));
+    await touchLocal();
+    toast(t.suggested.added(x.name));
+  }
+
+  return (
+    <section className="mt-8" aria-labelledby="suggested-title">
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 id="suggested-title" className="text-2xl font-semibold">{t.suggested.title}</h2>
+          <p className="text-sm text-ink-soft">{t.suggested.intro}</p>
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <span className="text-ink-soft">{t.suggested.subject}</span>
+          <BareSelect value={tag} onChange={(e) => setTag(e.target.value as SubjectTag)} className="w-auto">
+            {SUBJECT_TAGS.map((s) => (
+              <option key={s} value={s}>
+                {t.suggested.subjects[s]}
+              </option>
+            ))}
+          </BareSelect>
+        </label>
+      </div>
+      <p className="mb-4 text-xs text-ink-soft">{t.suggested.russiaNote}</p>
+      {list.length === 0 ? (
+        <p className="text-ink-soft">{t.library.noMatches}</p>
+      ) : (
+        <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {list.map((x) => {
+            const added = inLibrary(x);
+            return (
+              <li key={x.id} className="flex flex-col gap-1.5 rounded-2xl border border-dashed border-line bg-card/60 p-4">
+                <span className="flex items-start justify-between gap-2">
+                  <span className="font-serif text-lg font-semibold">{x.name}</span>
+                  <span className="shrink-0 rounded-full bg-sunk px-2 py-0.5 text-xs font-medium">{x.levels}</span>
+                </span>
+                <span className="text-sm text-ink-soft">{lang === 'ru' ? x.ru : x.en}</span>
+                <span className="flex flex-wrap gap-1.5 pt-1 text-xs">
+                  <span className={cx('rounded-full px-2 py-0.5', x.cost === 'free' ? 'bg-pen-soft' : 'bg-sunk')}>{t.suggested.cost[x.cost]}</span>
+                  {x.russian && <span className="rounded-full bg-sunk px-2 py-0.5">{t.suggested.russianSite}</span>}
+                  {x.youtube && <span className="rounded-full bg-amber-soft px-2 py-0.5">{t.suggested.youtube}</span>}
+                </span>
+                <span className="mt-auto flex flex-wrap items-center gap-2 pt-2">
+                  <a href={x.url} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1 text-sm font-medium text-pen underline underline-offset-2">
+                    {t.suggested.open} <ExternalLink size={14} aria-hidden />
+                  </a>
+                  {added ? (
+                    <span className="ml-auto text-sm font-medium text-ink-soft">✓ {t.suggested.inLibrary}</span>
+                  ) : (
+                    <Button size="sm" className="ml-auto" icon={<Plus size={14} />} onClick={() => add(x)}>
+                      {t.suggested.add}
+                    </Button>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
 
