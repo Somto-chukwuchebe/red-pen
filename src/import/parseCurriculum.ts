@@ -229,7 +229,7 @@ export function parseCurriculumHtml(html: string): ParseResult {
       h3 = '';
       current = null;
       if (!['How this curriculum works', 'Lesson frameworks', 'Kindergarten', 'Grades 2–4', 'Grades 5–8', 'Games bank', 'Resources'].includes(h2)) {
-        out.warnings.push(`Unknown section "## ${h2}" was notes.`);
+        out.warnings.push(`Unknown section "## ${h2}" was skipped.`);
       }
       continue;
     }
@@ -240,7 +240,7 @@ export function parseCurriculumHtml(html: string): ParseResult {
       if (['Kindergarten', 'Grades 2–4', 'Grades 5–8'].includes(h2)) {
         const c = curriculumFromH3(h2, h3);
         if (!c) {
-          out.warnings.push(`Unrecognised group heading "### ${h3}" under ${h2} was notes.`);
+          out.warnings.push(`Unrecognised group heading "### ${h3}" under ${h2} was skipped.`);
         } else {
           current = { ...c, intro: '', order: out.curricula.length + 1 };
           out.curricula.push(current);
@@ -343,7 +343,7 @@ export function parseCurriculumHtml(html: string): ParseResult {
       if (tag === 'TABLE') {
         const { header, body } = tableBody(node);
         if (!pendingModule) {
-          out.warnings.push(`${current.title}: a lesson table has no bold module line above it, so it was notes.`);
+          out.warnings.push(`${current.title}: a lesson table has no bold module line above it, so it was skipped.`);
           continue;
         }
         if (!/Week/i.test(header[0] ?? '') || header.length < 3) {

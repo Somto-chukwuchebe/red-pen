@@ -37,7 +37,7 @@ export default defineConfig({
       },
       workbox: {
         // Everything the app needs is cached on first visit, so it works fully offline.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest}'],
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,woff2,webmanifest}'],
         globIgnores: ['**/apple-splash-*.png'],
         navigateFallback: 'index.html',
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

@@ -511,8 +511,8 @@ export const en = {
   },
 
   curriculumImport: {
-    intro: 'Import your curriculum from your own Word document. It’s read on this device only; nothing is uploaded. Re-import after editing the document: your group positions and lesson plans are kept.',
-    choose: 'Import from a Word file (.docx)',
+    intro: 'Import your curriculum from your own Word document or PDF. It’s read on this device only; nothing is uploaded. Re-import after editing the document: your group positions and lesson plans are kept.',
+    choose: 'Import from Word or PDF',
     reading: 'Reading…',
     formatTitle: 'How should the document be laid out?',
     format: [
@@ -521,10 +521,12 @@ export const en = {
       'Grades 5–8: a table Module (month) | Lesson 1 | Lesson 2 | Lesson 3.',
       'Kindergarten: a table Month | Theme | Core words | Phrases | Songs | Games (or Weeks 1–2 theme | Weeks 3–4 theme for the youngest).',
       'Optional: “## Lesson frameworks”, “## Games bank” (Game | Levels | How it works | Prep) and “## Resources” (Resource | Use it for | Levels).',
+      'PDFs: export from Word or Google Docs (not a scan), keep table borders visible, and use bigger text for headings than for body text.',
     ],
-    pdfLater: 'PDF import is coming with the lesson planner. For now, save the document as Word (.docx) and import that.',
-    notDocx: 'Please choose a Word document (.docx).',
-    unreadable: 'That file couldn’t be read. Is it a Word document (.docx)?',
+    pdfCheck: 'This was read from a PDF, which stores words and lines rather than real headings and tables. Check the lesson counts and open “Show every lesson” before importing. If something looks wrong, importing the Word version is more exact.',
+    showLessons: 'Show every lesson found',
+    notDocx: 'Please choose a Word document (.docx) or a PDF.',
+    unreadable: 'That file couldn’t be read. Is it a Word document (.docx) or a PDF with selectable text (not a scan)?',
     nothingFound: 'No curriculum was found in that document. Check the layout tips below.',
     found: (name: string) => `Found in ${name}:`,
     modules: 'Modules',

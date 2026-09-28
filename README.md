@@ -158,7 +158,7 @@ The workflow is in `.github/workflows/deploy.yml`. It runs the tests first and w
 
 Red Pen has **no built-in curriculum**. Each teacher imports their own, so your curriculum lives only on your devices and never in the published app or the GitHub repository.
 
-1. On the device, open **Settings → Curriculum → Import from a Word file (.docx)** and choose your document.
+1. On the device, open **Settings → Curriculum → Import from Word or PDF** and choose your document (`.docx` or `.pdf`).
 2. Red Pen reads it **on that device** (nothing is uploaded) and shows what it found: modules and lessons per curriculum, lesson frameworks, games and resources, plus anything it couldn't read.
 3. Tap **Import**. Then, for each group, choose its curriculum in **Groups → the group → Edit**. The group starts at the first lesson; change that with "Change the next lesson".
 4. **After editing the document**, import it again. Imported modules and lessons are refreshed. Lessons you added by hand, lesson plans you've filled in, and each group's position are kept.
@@ -180,7 +180,13 @@ What the importer expects (see `src/import/parseCurriculum.ts`):
 - `## Grades 5–8`, with `### Grade N`: *Module (month) | Lesson 1 | Lesson 2 | Lesson 3*. Empty cells ("–") are skipped.
 - Optional: `## Lesson frameworks` (stage tables with minutes), `## Games bank` (*Game | Levels | How it works | Prep*), `## Resources` (*Resource | Use it for | Levels*, links kept).
 
-PDF import and building a curriculum by hand come with the lesson planner (Phase 3).
+**Word or PDF?** Word is exact: it keeps real headings and tables. A PDF only stores words and lines, so Red Pen rebuilds the structure from font sizes, bold text and table borders. Tested on your curriculum, the PDF gave exactly the same 525 lessons as the Word file. For PDFs:
+- export from Word or Google Docs (a scanned PDF has no text to read);
+- keep table borders visible;
+- make headings bigger than body text;
+- always check the preview (**Show every lesson found**) before importing.
+
+Building a curriculum by hand comes with the lesson planner (Phase 3).
 
 ---
 
@@ -204,7 +210,8 @@ PDF import and building a curriculum by hand come with the lesson planner (Phase
 | **lucide-react** | Icons |
 | **@fontsource-variable/inter**, **source-serif-4** | Fonts bundled into the app (Latin + Cyrillic) |
 | **Vitest** + **Testing Library** + **fake-indexeddb** | Automatic tests |
-| **mammoth**, **node-html-parser** | Read a Word curriculum inside the app. Downloaded only when you import |
+| **mammoth**, **node-html-parser** | Read a Word curriculum inside the app. Loaded only when you import |
+| **pdfjs-dist** (Mozilla pdf.js) | Reads a PDF curriculum inside the app. Loaded only when you import; cached so it works offline |
 | **tsx** | Runs the optional `check-curriculum` script |
 
 ### Where things live
@@ -218,7 +225,7 @@ src/
   i18n/en.ts, ru.ts      every piece of text in English and Russian
   pages/                 the screens
   components/            shared building blocks
-  import/                reading a curriculum document (Word)
+  import/                reading a curriculum document (Word or PDF)
   seed/                  example groups and the default calendar
 scripts/check-curriculum.ts    optional: check a Word curriculum on the computer
 docs/                          your private documents (ignored by git)
@@ -254,6 +261,6 @@ Send them the address: `https://somto-chukwuchebe.github.io/red-pen/`.
   - **adds their own groups** (name, lessons per week, lesson length); or
   - **restores a backup** from another device.
   Then they set their school year: week 1, terms (quarters or trimesters) and holidays.
-- **Curriculum:** there's no built-in curriculum. Each teacher imports their own from a Word document (section 5); PDF import and building one by hand come with the lesson planner. The same goes for the games and resources library: each teacher's is their own.
+- **Curriculum:** there's no built-in curriculum. Each teacher imports their own from a Word document or PDF (section 5); building one by hand comes with the lesson planner. The same goes for the games and resources library: each teacher's is their own.
 - **Everything is customisable afterwards:** groups can be added, edited, archived or deleted, and name, subject, calendar and language are in **Settings**.
 - Your own devices never see the wizard; it only appears on a device with no Red Pen data yet.

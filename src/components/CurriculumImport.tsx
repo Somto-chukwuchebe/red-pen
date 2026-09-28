@@ -18,6 +18,7 @@ export function CurriculumImport() {
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState('');
   const [withLibrary, setWithLibrary] = useState(true);
+  const [isPdf, setIsPdf] = useState(false);
   const groups = useLiveQuery(() => db.groups.toArray(), []);
   const existing = useLiveQuery(() => db.curricula.count(), []);
 
@@ -25,13 +26,15 @@ export function CurriculumImport() {
     setError(null);
     setParsed(null);
     if (!f) return;
-    if (/\.pdf$/i.test(f.name)) return setError(t.curriculumImport.pdfLater);
-    if (!/\.docx$/i.test(f.name)) return setError(t.curriculumImport.notDocx);
+    const pdf = /\.pdf$/i.test(f.name) || f.type === 'application/pdf';
+    if (!pdf && !/\.docx$/i.test(f.name)) return setError(t.curriculumImport.notDocx);
     setBusy(true);
     try {
-      // The Word reader is only downloaded when you import.
-      const { readCurriculumWordFile } = await import('../import/readWord');
-      const r = await readCurriculumWordFile(f);
+      // The Word and PDF readers are only downloaded when you import.
+      const r = pdf
+        ? await (await import('../import/readPdf')).readCurriculumPdfFile(f)
+        : await (await import('../import/readWord')).readCurriculumWordFile(f);
+      setIsPdf(pdf);
       setFileName(f.name);
       if (!r.curricula.length && !r.games.length) setError(t.curriculumImport.nothingFound);
       else setParsed(r);
@@ -60,7 +63,7 @@ export function CurriculumImport() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-ink-soft">{t.curriculumImport.intro}</p>
-      <input ref={input} type="file" accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+      <input ref={input} type="file" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
       <div>
         <Button icon={<FileUp size={18} />} onClick={() => input.current?.click()} disabled={busy}>
           {busy && !parsed ? t.curriculumImport.reading : t.curriculumImport.choose}
@@ -105,6 +108,35 @@ export function CurriculumImport() {
             </table>
           </div>
           <p className="text-sm text-ink-soft">{t.curriculumImport.extras(parsed.frameworks.length, parsed.games.length, parsed.resources.length)}</p>
+          {isPdf && <Banner tone="info">{t.curriculumImport.pdfCheck}</Banner>}
+          <details className="text-sm">
+            <summary className="cursor-pointer font-medium">{t.curriculumImport.showLessons}</summary>
+            <div className="mt-2 max-h-80 overflow-y-auto rounded-lg bg-sunk p-2">
+              {parsed.curricula.map((c) => (
+                <div key={c.key} className="mb-3">
+                  <p className="font-semibold">{c.title}</p>
+                  {parsed.modules
+                    .filter((m) => m.curriculumKey === c.key)
+                    .map((m) => (
+                      <div key={m.id} className="mt-1 ml-2">
+                        <p className="font-medium">
+                          {m.title} <span className="font-normal text-ink-soft">({m.months})</span>
+                        </p>
+                        <ul className="ml-4 list-disc text-ink-soft">
+                          {parsed.lessons
+                            .filter((l) => l.moduleId === m.id)
+                            .map((l) => (
+                              <li key={l.id}>
+                                {l.label}: {l.focus}
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    ))}
+                </div>
+              ))}
+            </div>
+          </details>
           {parsed.warnings.length > 0 && (
             <Banner tone="warn">
               <p className="font-semibold">{t.curriculumImport.warnings(parsed.warnings.length)}</p>
