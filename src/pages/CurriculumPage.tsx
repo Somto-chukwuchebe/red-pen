@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, useParams } from 'react-router';
-import { Dialog, EmptyState, GroupChip, PageHeader, cx } from '../components/ui';
+import { Dialog, EmptyState, GroupChip, LinkButton, PageHeader, cx } from '../components/ui';
 import { db } from '../db/db';
 import { useGroups } from '../db/hooks';
 import type { Group, PlannedLesson } from '../domain/types';
@@ -25,7 +25,22 @@ export function CurriculumPage() {
   const [openLesson, setOpenLesson] = useState<PlannedLesson | null>(null);
 
   if (!curricula || !groups) return null;
-  if (!curricula.length) return <EmptyState title={t.curriculum.empty} />;
+  if (!curricula.length)
+    return (
+      <>
+        <PageHeader title={t.curriculum.title} />
+        <EmptyState
+          title={t.curriculum.empty}
+          action={
+            <LinkButton to="/settings" variant="primary">
+              {t.curriculum.importCta}
+            </LinkButton>
+          }
+        >
+          {t.curriculum.emptyHint}
+        </EmptyState>
+      </>
+    );
   if (!active) return null;
 
   const followers = groups.filter((g) => g.curriculumKey === active.key);

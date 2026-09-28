@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { _useDatabase, db } from './db';
 import { deleteGroup, deleteLog, saveLog, type LogDraft } from './logs';
+import { importSampleCurriculum } from '../test/fixtures';
 import { ensureSeeded } from './seed';
 
 let n = 0;
 beforeEach(async () => {
   _useDatabase(`test-logs-${++n}`);
   await ensureSeeded();
+  await importSampleCurriculum();
   await db.students.bulkPut([
     { id: 's1', groupId: 'g-2a', name: 'Masha', notes: '', active: true, updatedAt: 1 },
     { id: 's2', groupId: 'g-2a', name: 'Petya', notes: '', active: true, updatedAt: 1 },
@@ -35,15 +37,15 @@ const pointerLabel = async () => (await db.lessons.get((await db.groups.get('g-2
 
 describe('saving a lesson log', () => {
   it('moves the group on to the next lesson', async () => {
-    expect(await pointerLabel()).toBe('Week 2 · Lesson A');
+    expect(await pointerLabel()).toBe('Week 1 · Lesson A');
     await saveLog(await draft());
-    expect(await pointerLabel()).toBe('Week 2 · Lesson B');
+    expect(await pointerLabel()).toBe('Week 1 · Lesson B');
   });
 
   it("doesn't move on for a cancelled lesson or a test-week review", async () => {
     await saveLog(await draft({ status: 'cancelled' }));
     await saveLog(await draft({ status: 'review' }));
-    expect(await pointerLabel()).toBe('Week 2 · Lesson A');
+    expect(await pointerLabel()).toBe('Week 1 · Lesson A');
   });
 
   it('respects a manual override, and editing an old log does not move it again', async () => {

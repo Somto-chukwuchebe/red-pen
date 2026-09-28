@@ -17,7 +17,7 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
 2. [Install it on each device](#2-install-it-on-each-device)
 3. [Back up, restore and move your data](#3-back-up-restore-and-move-your-data)
 4. [Publish it on GitHub Pages](#4-publish-it-on-github-pages)
-5. [Re-import the curriculum](#5-re-import-the-curriculum)
+5. [Import your curriculum](#5-import-your-curriculum)
 6. [Native iPhone and Android apps with widgets](#6-native-iphone-and-android-apps-with-widgets)
 7. [For the curious: how it's built](#7-for-the-curious-how-its-built)
 8. [Sharing Red Pen with other teachers](#8-sharing-red-pen-with-other-teachers)
@@ -39,7 +39,6 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
 - **Week** shows the whole week: planned, taught, not logged yet (amber) and cancelled. Tap a lesson to log it or edit its log.
 - **Groups → a group** has:
   - the progress bar and "Change the next lesson";
-  - **Class teacher** (where they are in the textbook; changing the module can move your plan to match);
   - students (paste a list of names);
   - the can-do checklist for the current module;
   - the lesson history, with an **Attendance (CSV)** export for Excel or Google Sheets.
@@ -73,7 +72,7 @@ Other commands:
 | `npm test` | Runs the automatic checks (curriculum import, schedule, backups…) |
 | `npm run build` | Builds the finished app into the `dist` folder |
 | `npm run preview` | Serves the finished build locally, to try it exactly as it will be published |
-| `npm run import-curriculum` | Reads `docs/curriculum.docx` and shows a summary (see section 5) |
+| `npm run check-curriculum` | Checks a Word curriculum and shows what would be imported (see section 5) |
 
 ---
 
@@ -136,7 +135,7 @@ Everything is in **Backup & move** (in **More** on phones).
 
 GitHub Pages hosts the app for free at `https://somto-chukwuchebe.github.io/red-pen/`. Only the app's code is public there; your data stays on your devices.
 
-**Note:** the curriculum is built into the app, so your curriculum text (not your students' data) is visible to anyone who opens that address.
+Nothing personal is published: no curriculum, games, students or logs. Those live only on your devices.
 
 One-time setup:
 
@@ -155,30 +154,33 @@ The workflow is in `.github/workflows/deploy.yml`. It runs the tests first and w
 
 ---
 
-## 5. Re-import the curriculum
+## 5. Import your curriculum
 
-1. Export your curriculum document as Word (`.docx`) and save it as `docs/curriculum.docx` (replace the old one).
-2. Check what the importer finds (this writes nothing):
-   ```bash
-   npm run import-curriculum
-   ```
-   It prints the number of modules and lessons for each curriculum and group, and lists anything it couldn't read. Fix those in the document and run it again.
-3. When the summary looks right, save it for the app:
-   ```bash
-   npm run import-curriculum -- --write
-   ```
-4. Publish (`git add -A && git commit -m "Update curriculum" && git push`).
-5. On each device, open Red Pen → **Settings → Curriculum → Load the new curriculum**.
-   Imported modules and lessons are replaced. Lessons you added by hand, lesson plans you've filled in, and each group's position are kept.
+Red Pen has **no built-in curriculum**. Each teacher imports their own, so your curriculum lives only on your devices and never in the published app or the GitHub repository.
 
-What the importer expects (see `scripts/lib/parse-curriculum.ts`):
+1. On the device, open **Settings → Curriculum → Import from a Word file (.docx)** and choose your document.
+2. Red Pen reads it **on that device** (nothing is uploaded) and shows what it found: modules and lessons per curriculum, lesson frameworks, games and resources, plus anything it couldn't read.
+3. Tap **Import**. Then, for each group, choose its curriculum in **Groups → the group → Edit**. The group starts at the first lesson; change that with "Change the next lesson".
+4. **After editing the document**, import it again. Imported modules and lessons are refreshed. Lessons you added by hand, lesson plans you've filled in, and each group's position are kept.
+
+**On a new device of yours**, either restore a backup (which brings everything: curriculum, groups, logs) or import the Word file again.
+
+**Checking a document on the computer (optional):** keep it at `docs/curriculum.docx` (this folder is ignored by git, so it's never published) and run:
+
+```bash
+npm run check-curriculum
+```
+
+It prints the same summary without changing anything.
+
+What the importer expects (see `src/import/parseCurriculum.ts`):
 
 - `## Kindergarten`, with a `###` per group. Little group: *Month | Weeks 1–2 theme | Weeks 3–4 theme | Songs and rhymes | Play*. Middle/Older: *Month | Theme | Core words | Phrases | Songs | Games*.
-- `## Grades 2–4`, with `### Grade N`. A bold line "**Module 3: Tasty treats (Nov).** Key language: …", then a table *Week | Lesson A | Lesson B*. A "Review and show" module described in prose gets 8 lessons built from its description.
+- `## Grades 2–4`, with `### Grade N`. A bold line like "**Module 3: Food (Nov).** Key language: …", then a table *Week | Lesson A | Lesson B*. A "Review and show" module described in prose gets 8 lessons built from its description.
 - `## Grades 5–8`, with `### Grade N`: *Module (month) | Lesson 1 | Lesson 2 | Lesson 3*. Empty cells ("–") are skipped.
-- `## Lesson frameworks`: stage tables with minutes (used by the lesson planner).
-- `## Games bank`: *Game | Levels | How it works | Prep*.
-- `## Resources`: *Resource | Use it for | Levels* (links are kept).
+- Optional: `## Lesson frameworks` (stage tables with minutes), `## Games bank` (*Game | Levels | How it works | Prep*), `## Resources` (*Resource | Use it for | Levels*, links kept).
+
+PDF import and building a curriculum by hand come with the lesson planner (Phase 3).
 
 ---
 
@@ -202,7 +204,8 @@ What the importer expects (see `scripts/lib/parse-curriculum.ts`):
 | **lucide-react** | Icons |
 | **@fontsource-variable/inter**, **source-serif-4** | Fonts bundled into the app (Latin + Cyrillic) |
 | **Vitest** + **Testing Library** + **fake-indexeddb** | Automatic tests |
-| **mammoth**, **node-html-parser**, **tsx** | Used only by the curriculum import script |
+| **mammoth**, **node-html-parser** | Read a Word curriculum inside the app. Downloaded only when you import |
+| **tsx** | Runs the optional `check-curriculum` script |
 
 ### Where things live
 
@@ -215,9 +218,10 @@ src/
   i18n/en.ts, ru.ts      every piece of text in English and Russian
   pages/                 the screens
   components/            shared building blocks
-  seed/                  starting data: groups, calendar and the imported curriculum
-scripts/import-curriculum.ts   the curriculum importer
-docs/curriculum.docx           your curriculum document
+  import/                reading a curriculum document (Word)
+  seed/                  example groups and the default calendar
+scripts/check-curriculum.ts    optional: check a Word curriculum on the computer
+docs/                          your private documents (ignored by git)
 public/icon.svg                the app icon (all other icons are generated from it)
 ```
 
@@ -228,6 +232,7 @@ The model follows the brief, with these changes:
 - **Groups point to a curriculum key** (e.g. `grade-2`, `kg-older`), not just a type or grade. Parallel groups share one curriculum, and KG Older 1 and 2 share one plan.
 - **Groups store their exact next lesson** (`currentPlannedLessonId`); the current module is worked out from it.
 - **Lesson frameworks are data**, imported from the curriculum document, with minutes per lesson length for kindergarten.
+- **Class-teacher notes (`TeacherSync`)** have no screen any more; the table stays in the database only so older backups still import cleanly.
 - **Can-do** is split into statements (per module) and marks (per group or per student).
 - **"Times used / last used" for games** is calculated from lesson logs, so it can never drift out of step.
 - **Every record has an `updatedAt` time**, and deletions are remembered, so **Merge** can combine two devices safely.
@@ -249,6 +254,6 @@ Send them the address: `https://somto-chukwuchebe.github.io/red-pen/`.
   - **adds their own groups** (name, lessons per week, lesson length); or
   - **restores a backup** from another device.
   Then they set their school year: week 1, terms (quarters or trimesters) and holidays.
-- **Curriculum:** English teachers can use the built-in Spotlight-aligned curriculum. Teachers of other subjects start without one. Uploading your own curriculum (Word or PDF) and building one by hand in the planner come in the next phase.
+- **Curriculum:** there's no built-in curriculum. Each teacher imports their own from a Word document (section 5); PDF import and building one by hand come with the lesson planner. The same goes for the games and resources library: each teacher's is their own.
 - **Everything is customisable afterwards:** groups can be added, edited, archived or deleted, and name, subject, calendar and language are in **Settings**.
 - Your own devices never see the wizard; it only appears on a device with no Red Pen data yet.

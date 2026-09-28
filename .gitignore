@@ -6,3 +6,7 @@ dev-dist
 coverage
 # The original export sits next to docs/curriculum.docx; only the docs/ copy is tracked.
 /English Speaking Club Curriculum*.docx
+
+# Your own curriculum stays private: never commit it.
+docs/*.docx
+docs/*.pdf

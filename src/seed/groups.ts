@@ -1,28 +1,25 @@
-// Starting data for a fresh install. Everything here is editable in the app.
+// Example groups offered by the setup wizard, and the default school calendar.
+// Generic on purpose: no textbooks or curriculum. Everything is editable in the app.
 
 import type { DateRange, Group } from '../domain/types';
 
-export type SeedGroup = Omit<Group, 'updatedAt' | 'currentPlannedLessonId'> & {
-  /** Where the lesson pointer starts on a fresh install. */
-  startAt?: { module: 'first' | 'module-1'; label?: string };
-};
+export type SeedGroup = Omit<Group, 'updatedAt' | 'currentPlannedLessonId'>;
 
 const primary = (grade: number, letter: string, colour: string, order: number): SeedGroup => ({
   id: `g-${grade}${letter}`,
   name: `${grade}${letter}`,
   type: 'primary',
   grade,
-  curriculumKey: `grade-${grade}`,
+  curriculumKey: '',
   lessonsPerWeek: 2,
   lessonLengthMin: 40,
-  textbook: `Spotlight ${grade}`,
+  textbook: '',
   studentCount: 18,
   colour,
-  notes: grade === 2 ? 'Starts from the Starter (no alphabet block).' : '',
+  notes: '',
   archived: false,
   order,
   tracksStudents: true,
-  startAt: { module: 'first', label: 'Week 2 · Lesson A' },
 });
 
 const secondary = (grade: number, letter: string, colour: string, order: number): SeedGroup => ({
@@ -30,17 +27,16 @@ const secondary = (grade: number, letter: string, colour: string, order: number)
   name: `${grade}${letter}`,
   type: 'secondary',
   grade,
-  curriculumKey: `grade-${grade}`,
+  curriculumKey: '',
   lessonsPerWeek: 1,
   lessonLengthMin: 40,
-  textbook: `Spotlight ${grade}`,
+  textbook: '',
   studentCount: 18,
   colour,
-  notes: grade <= 7 ? "Follows the class teacher's plan." : '',
+  notes: '',
   archived: false,
   order,
   tracksStudents: true,
-  startAt: { module: 'module-1' },
 });
 
 const kg = (id: string, name: string, key: string, length: number, colour: string, order: number): SeedGroup => ({
@@ -48,17 +44,16 @@ const kg = (id: string, name: string, key: string, length: number, colour: strin
   name,
   type: 'kindergarten',
   grade: null,
-  curriculumKey: key,
+  curriculumKey: '',
   lessonsPerWeek: 2,
   lessonLengthMin: length,
-  textbook: 'Own themes',
+  textbook: '',
   studentCount: 9,
   colour,
   notes: '',
   archived: false,
   order,
   tracksStudents: key !== 'kg-little',
-  startAt: { module: 'first', label: 'Week 2 · Lesson A' },
 });
 
 // Parallel groups share a hue; the "b" group is a lighter shade.

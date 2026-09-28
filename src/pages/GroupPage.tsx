@@ -4,19 +4,19 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { LogSheet, type LogTarget } from '../components/LogSheet';
 import { useToast } from '../components/Toast';
-import { BareInput, Banner, Button, Card, Dialog, EmptyState, SectionTitle, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
+import { BareInput, Button, Card, Dialog, EmptyState, SectionTitle, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
 import { shareOrDownload } from '../db/backup';
 import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
 import { curriculumOrder } from '../db/logs';
 import { newId, patch, remove, save } from '../db/repo';
-import type { CanDoLevel, CanDoMark, CanDoStatement, Group, ID, Student, TeacherSync } from '../domain/types';
+import type { CanDoLevel, CanDoMark, CanDoStatement, Group, ID, Student } from '../domain/types';
 import { useT } from '../i18n';
 import { attendanceRows, toCsv } from '../lib/csv';
 import { todayISO } from '../lib/dates';
-import { dayMonth, shortDate } from '../lib/format';
+import { shortDate } from '../lib/format';
 import { isTouchPhone } from '../lib/platform';
-import { firstLessonOfModule, progressFraction } from '../lib/pointer';
+import { progressFraction } from '../lib/pointer';
 import { GroupEditor } from './GroupsPage';
 
 export function GroupPage() {
@@ -34,14 +34,13 @@ export function GroupPage() {
     const lessons = await db.lessons.where('moduleId').anyOf(modules.map((m) => m.id)).toArray();
     const students = (await db.students.where('groupId').equals(id).toArray()).sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name));
     const logs = (await db.logs.where('groupId').equals(id).toArray()).sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt - a.updatedAt);
-    const syncs = (await db.teacherSync.where('groupId').equals(id).toArray()).sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt - a.updatedAt);
     const ordered = await curriculumOrder(group.curriculumKey);
-    return { group, modules, lessons, students, logs, syncs, ordered };
+    return { group, modules, lessons, students, logs, ordered };
   }, [id]);
 
   if (data === undefined || !settings) return null;
   if (data === null) return <EmptyState title={t.groupPage.notFound} />;
-  const { group, modules, lessons, students, logs, syncs, ordered } = data;
+  const { group, modules, lessons, students, logs, ordered } = data;
   const lessonById = new Map(lessons.map((l) => [l.id, l]));
   const moduleById = new Map(modules.map((m) => [m.id, m]));
   const pointer = group.currentPlannedLessonId ? lessonById.get(group.currentPlannedLessonId) : undefined;
@@ -127,11 +126,6 @@ export function GroupPage() {
           )}
         </Card>
 
-        {/* Class teacher */}
-        {group.type !== 'kindergarten' && (
-          <ClassTeacher group={group} syncs={syncs} modules={modules} lessons={lessons} pointerModuleId={pointerModule?.id} />
-        )}
-
         {/* Roster */}
         {group.tracksStudents && <Roster group={group} students={students} />}
 
@@ -176,104 +170,6 @@ export function GroupPage() {
       {editing && <GroupEditor group={group} onClose={() => setEditing(false)} onDeleted={() => navigate('/groups')} />}
       <LogSheet target={logTarget} onClose={() => setLogTarget(null)} />
     </>
-  );
-}
-
-// ─── Class teacher sync ────────────────────────────────────────────────
-
-function ClassTeacher({ group, syncs, modules, lessons, pointerModuleId }: { group: Group; syncs: TeacherSync[]; modules: { id: ID; title: string; months: string }[]; lessons: { id: ID; moduleId: ID; order: number }[]; pointerModuleId?: ID }) {
-  const t = useT();
-  const toast = useToast();
-  const last = syncs[0];
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState({ teacherName: last?.teacherName ?? '', moduleId: last?.moduleId ?? pointerModuleId ?? '', position: '', note: '', move: true });
-  const moduleTitle = (mid: ID | null) => modules.find((m) => m.id === mid)?.title;
-  const moving = !!draft.moduleId && draft.moduleId !== pointerModuleId;
-
-  async function onSave() {
-    await save<TeacherSync>('teacherSync', {
-      id: newId('sync'),
-      groupId: group.id,
-      teacherName: draft.teacherName.trim(),
-      date: todayISO(),
-      moduleId: draft.moduleId || null,
-      position: draft.position.trim(),
-      note: draft.note.trim(),
-    });
-    if (moving && draft.move) {
-      const first = firstLessonOfModule(lessons, draft.moduleId);
-      if (first) await patch<Group>('groups', group.id, { currentPlannedLessonId: first });
-    }
-    toast(t.common.saved);
-    setOpen(false);
-  }
-
-  return (
-    <Card>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <SectionTitle className="!mb-0">{t.groupPage.classTeacher}</SectionTitle>
-        <Button size="sm" onClick={() => { setDraft((d) => ({ ...d, moduleId: last?.moduleId ?? pointerModuleId ?? '', position: '', note: '', move: true })); setOpen(true); }}>
-          {t.groupPage.update}
-        </Button>
-      </div>
-      {last ? (
-        <div>
-          <p>
-            <span className="font-semibold">{last.teacherName || t.groupPage.teacher}</span>
-            {last.moduleId && <> · {moduleTitle(last.moduleId)}</>}
-            {last.position && <> · {last.position}</>}
-          </p>
-          <p className="text-sm text-ink-soft">
-            {t.groupPage.checked(dayMonth(t.locale, last.date))}
-            {last.note && ` · ${last.note}`}
-          </p>
-          {last.moduleId && pointerModuleId && last.moduleId !== pointerModuleId && <div className="mt-2"><Banner tone="warn">{t.groupPage.outOfStep}</Banner></div>}
-          {syncs.length > 1 && (
-            <details className="mt-2 text-sm text-ink-soft">
-              <summary className="cursor-pointer">{t.groupPage.earlier(syncs.length - 1)}</summary>
-              <ul className="mt-1 flex flex-col gap-1">
-                {syncs.slice(1).map((s) => (
-                  <li key={s.id}>
-                    {dayMonth(t.locale, s.date)} · {moduleTitle(s.moduleId) ?? ''} {s.position} {s.note && `· ${s.note}`}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
-        </div>
-      ) : (
-        <p className="text-ink-soft">{t.groupPage.classTeacherHint}</p>
-      )}
-
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        title={t.groupPage.whereTeacher}
-        footer={
-          <>
-            <Button onClick={() => setOpen(false)}>{t.common.cancel}</Button>
-            <Button variant="primary" onClick={onSave}>
-              {t.common.save}
-            </Button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <TextInput label={t.groupPage.teacherName} value={draft.teacherName} onChange={(e) => setDraft({ ...draft, teacherName: e.target.value })} />
-          <Select label={t.groupPage.teacherModule} value={draft.moduleId} onChange={(e) => setDraft({ ...draft, moduleId: e.target.value })}>
-            <option value="">—</option>
-            {modules.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.title} ({m.months})
-              </option>
-            ))}
-          </Select>
-          <TextInput label={`${t.groupPage.position} (${t.common.optional})`} placeholder={t.groupPage.positionPlaceholder} value={draft.position} onChange={(e) => setDraft({ ...draft, position: e.target.value })} />
-          <TextInput label={`${t.common.notes} (${t.common.optional})`} placeholder={t.groupPage.notePlaceholder} value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} />
-          {moving && <Toggle label={t.groupPage.moveMyPlan(moduleTitle(draft.moduleId) ?? '')} hint={t.groupPage.moveMyPlanHint} checked={draft.move} onChange={(move) => setDraft({ ...draft, move })} />}
-        </div>
-      </Dialog>
-    </Card>
   );
 }
 

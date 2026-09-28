@@ -1,11 +1,11 @@
 import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { CurriculumImport } from '../components/CurriculumImport';
 import { CalendarFields, cleanCalendar, type CalendarValue } from '../components/CalendarFields';
 import { useEffect, useState } from 'react';
 import { Banner, Button, Card, PageHeader, Segmented, SectionTitle, TextInput } from '../components/ui';
 import { useToast } from '../components/Toast';
 import { useLocal, useSettings } from '../db/hooks';
 import { patch, setLocal } from '../db/repo';
-import { reloadCurriculum } from '../db/seed';
 import type { Settings } from '../domain/types';
 import { useT } from '../i18n';
 import { checkCalendar } from '../lib/calendar';
@@ -60,16 +60,7 @@ export function SettingsPage() {
 
         <Card>
           <SectionTitle>{t.settings.curriculum}</SectionTitle>
-          <p className="mb-3 text-ink-soft">{t.settings.curriculumHint}</p>
-          <Button
-            onClick={async () => {
-              if (!confirm(t.settings.confirmReload)) return;
-              const r = await reloadCurriculum();
-              toast(t.settings.reloaded(r.modules, r.lessons));
-            }}
-          >
-            {t.settings.reloadCurriculum}
-          </Button>
+          <CurriculumImport />
         </Card>
 
         <p className="text-sm text-ink-soft">

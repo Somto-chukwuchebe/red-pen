@@ -5,9 +5,9 @@ import { ArrowLeft, ArrowRight, FileUp, Plus, Trash2, Users, UserPlus } from 'lu
 import { useRef, useState, type ReactNode } from 'react';
 import { CalendarFields, cleanCalendar, type CalendarValue } from '../components/CalendarFields';
 import { Logo } from '../components/Logo';
-import { BareInput, BareSelect, Banner, Button, Card, GroupDot, Segmented, TextInput, Toggle, cx } from '../components/ui';
+import { BareInput, BareSelect, Banner, Button, Card, GroupDot, Segmented, TextInput, cx } from '../components/ui';
 import { applyImport, BackupError, parseBackup, type BackupFile } from '../db/backup';
-import { ensureDeviceName, isEnglish, setupNewDevice } from '../db/seed';
+import { ensureDeviceName, setupNewDevice } from '../db/seed';
 import type { GroupType } from '../domain/types';
 import { dictionaries, LanguageProvider, useT } from '../i18n';
 import { checkCalendar } from '../lib/calendar';
@@ -67,15 +67,12 @@ function Wizard({ lang, setLang }: { lang: 'en' | 'ru'; setLang: (l: 'en' | 'ru'
   const [step, setStep] = useState<Step>('welcome');
   const [teacherName, setTeacherName] = useState('');
   const [subject, setSubject] = useState(dictionaries[lang].setup.defaultSubject);
-  const [builtIn, setBuiltIn] = useState(true);
   const [start, setStart] = useState<Start>('example');
   const [examples, setExamples] = useState<Row[]>(() => SEED_GROUPS.map((g) => ({ keep: true, group: { ...g } })));
   const [own, setOwn] = useState<SeedGroup[]>([blankGroup(0)]);
   const [calendar, setCalendar] = useState<CalendarValue>(() => localiseCalendar({ yearStart: SEED_YEAR_START, quarters: SEED_QUARTERS, holidays: SEED_HOLIDAYS }, lang));
   const [busy, setBusy] = useState(false);
 
-  const english = isEnglish(subject);
-  const useBuiltIn = english && builtIn;
   const chosenGroups = start === 'example' ? examples.filter((r) => r.keep && r.group.name.trim()).map((r) => r.group) : own.filter((g) => g.name.trim());
 
   async function finish() {
@@ -85,9 +82,8 @@ function Wizard({ lang, setLang }: { lang: 'en' | 'ru'; setLang: (l: 'en' | 'ru'
         subject,
         language: lang,
         teacherName,
-        groups: chosenGroups.map((g) => ({ ...g, name: g.name.trim(), curriculumKey: useBuiltIn ? g.curriculumKey : '' })),
+        groups: chosenGroups.map((g) => ({ ...g, name: g.name.trim() })),
         calendar: cleanCalendar(calendar),
-        includeBuiltInCurriculum: useBuiltIn,
       });
       // The app notices the new settings and opens Today.
     } finally {
@@ -130,11 +126,7 @@ function Wizard({ lang, setLang }: { lang: 'en' | 'ru'; setLang: (l: 'en' | 'ru'
                 </div>
               </div>
               <div className="mt-4">
-                {english ? (
-                  <Toggle label={s.builtInLabel} hint={s.builtInHint} checked={builtIn} onChange={setBuiltIn} />
-                ) : (
-                  <Banner tone="info">{s.ownCurriculumLater}</Banner>
-                )}
+                <Banner tone="info">{s.ownCurriculumLater}</Banner>
               </div>
             </Card>
             <Banner tone="info">{s.privacy}</Banner>
