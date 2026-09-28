@@ -10,3 +10,4 @@ coverage
 # Your own curriculum stays private: never commit it.
 docs/*.docx
 docs/*.pdf
+*.tsbuildinfo
