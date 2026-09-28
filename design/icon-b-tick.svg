@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#FBF5E9"/>
+  <!-- faint ruled lines, like an exercise book -->
+  <path d="M96 196 H416 M96 276 H416 M96 356 H416" stroke="#1F2A44" stroke-opacity=".12" stroke-width="6" stroke-linecap="round"/>
+  <!-- hand-drawn tick: thicker down-stroke, tapering up-stroke -->
+  <path d="M142 262 C160 270 186 296 212 346 C218 358 230 360 236 348 C270 268 320 196 378 142 C388 132 380 124 368 130 C300 170 256 238 226 304 C204 270 184 252 160 244 C146 240 134 254 142 262 Z" fill="#C8332B"/>
+</svg>

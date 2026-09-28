@@ -1,0 +1,107 @@
+@import 'tailwindcss';
+@import './fonts.css';
+
+/* Dark mode follows the `dark` class on <html> (set from Settings → Theme). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Colour tokens. Red ink is for highlights, ticks and progress — never errors.
+   Warnings use amber. */
+:root {
+  --paper: #fbf5e9;
+  --card: #fffdf8;
+  --sunk: #f3ecdd;
+  --line: #e4dac6;
+  --ink: #1f2a44;
+  --ink-soft: #56607a;
+  --pen: #c8332b;
+  --pen-strong: #a92820;
+  --pen-soft: #f7e1dc;
+  --amber: #9a6200;
+  --amber-soft: #fbeccb;
+  --ok: #2f6d3a;
+  --focus: #1f5fbf;
+}
+.dark {
+  --paper: #16181d;
+  --card: #1e2128;
+  --sunk: #121418;
+  --line: #2f333d;
+  --ink: #ece7dc;
+  --ink-soft: #a7abb6;
+  --pen: #ef6a5f;
+  --pen-strong: #ff8a80;
+  --pen-soft: #3b2322;
+  --amber: #f0b445;
+  --amber-soft: #3a2e14;
+  --ok: #7cc48a;
+  --focus: #7fb0ff;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-sunk: var(--sunk);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-pen: var(--pen);
+  --color-pen-strong: var(--pen-strong);
+  --color-pen-soft: var(--pen-soft);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-ok: var(--ok);
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+body {
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+
+/* Visible keyboard focus everywhere. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* iPhone notch and home bar. */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: white;
+    color: black;
+  }
+}

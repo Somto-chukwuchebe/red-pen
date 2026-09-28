@@ -1,0 +1,559 @@
+[
+  {
+    "id": "game-alibi",
+    "name": "Alibi",
+    "levels": "5–8",
+    "levelTags": [
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Two \"suspects\" leave and agree a story; the class questions them separately (Where were you at 7? Who were you with?) and hunts for differences",
+    "prep": "None"
+  },
+  {
+    "id": "game-baamboozle-wordwall-quiz",
+    "name": "Baamboozle / Wordwall quiz",
+    "levels": "2–8",
+    "levelTags": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Team quiz on the projector; teams must answer in a full sentence to score",
+    "prep": "Find a ready game by module name"
+  },
+  {
+    "id": "game-balloon-debate",
+    "name": "Balloon debate",
+    "levels": "7–8",
+    "levelTags": [
+      "7",
+      "8"
+    ],
+    "howItWorks": "Each student is a famous person or invention in a sinking balloon and argues why they should stay",
+    "prep": "Role cards"
+  },
+  {
+    "id": "game-birthday-line-up",
+    "name": "Birthday line-up",
+    "levels": "4–6",
+    "levelTags": [
+      "4",
+      "5",
+      "6"
+    ],
+    "howItWorks": "Class lines up by birthday, asking only in English: When's your birthday?",
+    "prep": "None"
+  },
+  {
+    "id": "game-board-race",
+    "name": "Board race",
+    "levels": "2–8",
+    "levelTags": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Two teams, one pen each; you call a category, runners write words; the team must say them aloud to score",
+    "prep": "Board, 2 markers"
+  },
+  {
+    "id": "game-buzz",
+    "name": "Buzz",
+    "levels": "3–4",
+    "levelTags": [
+      "3",
+      "4"
+    ],
+    "howItWorks": "Count round the class; say \"buzz\" instead of multiples of 5 (or 3); a mistake means sit down",
+    "prep": "None"
+  },
+  {
+    "id": "game-chain-story",
+    "name": "Chain story",
+    "levels": "4–8",
+    "levelTags": [
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Each student adds one sentence to a story, using the target tense",
+    "prep": "None"
+  },
+  {
+    "id": "game-charades",
+    "name": "Charades",
+    "levels": "KG–8",
+    "levelTags": [
+      "KG",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Mime a word or action; the team guesses with the target phrase (You're swimming!)",
+    "prep": "Word cards"
+  },
+  {
+    "id": "game-class-survey",
+    "name": "Class survey",
+    "levels": "2–8",
+    "levelTags": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Everyone asks five classmates one question, then reports: Three people like pizza.",
+    "prep": "Survey grids"
+  },
+  {
+    "id": "game-colour-hunt-touch-something",
+    "name": "Colour hunt / Touch something…",
+    "levels": "KG–2",
+    "levelTags": [
+      "KG",
+      "2"
+    ],
+    "howItWorks": "Call \"Touch something red!\"; children run and touch it and say \"red\"",
+    "prep": "None"
+  },
+  {
+    "id": "game-debate-four-corners",
+    "name": "Debate (four corners)",
+    "levels": "6–8",
+    "levelTags": [
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Corners marked Agree, Disagree, Not sure, It depends; students move and justify",
+    "prep": "Statements"
+  },
+  {
+    "id": "game-describe-and-draw",
+    "name": "Describe and draw",
+    "levels": "3–8",
+    "levelTags": [
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "One partner describes a hidden picture; the other draws it; then compare",
+    "prep": "Simple pictures"
+  },
+  {
+    "id": "game-detective",
+    "name": "Detective",
+    "levels": "4–6",
+    "levelTags": [
+      "4",
+      "5",
+      "6"
+    ],
+    "howItWorks": "Cards show where each person was; students ask Were you at…? to solve who took the cake",
+    "prep": "Clue cards"
+  },
+  {
+    "id": "game-diamond-ranking",
+    "name": "Diamond ranking",
+    "levels": "7–8",
+    "levelTags": [
+      "7",
+      "8"
+    ],
+    "howItWorks": "Groups rank nine problems in a diamond shape and defend the top one",
+    "prep": "Nine cards per group"
+  },
+  {
+    "id": "game-find-someone-who",
+    "name": "Find someone who",
+    "levels": "2–8",
+    "levelTags": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Mingle with a grid of prompts; find a classmate for each and write their name",
+    "prep": "Grids"
+  },
+  {
+    "id": "game-flash-and-guess",
+    "name": "Flash and guess",
+    "levels": "KG–4",
+    "levelTags": [
+      "KG",
+      "2",
+      "3",
+      "4"
+    ],
+    "howItWorks": "Flash a flashcard for a second; first to name it wins a point",
+    "prep": "Flashcards"
+  },
+  {
+    "id": "game-fortune-teller",
+    "name": "Fortune teller",
+    "levels": "4–7",
+    "levelTags": [
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "howItWorks": "A \"fortune teller\" predicts classmates' futures with will / going to",
+    "prep": "Optional crystal ball"
+  },
+  {
+    "id": "game-freeze-dance",
+    "name": "Freeze dance",
+    "levels": "KG–2",
+    "levelTags": [
+      "KG",
+      "2"
+    ],
+    "howItWorks": "Dance to music; when it stops, freeze and name the flashcard you hold up",
+    "prep": "Music"
+  },
+  {
+    "id": "game-freeze-frame",
+    "name": "Freeze frame",
+    "levels": "3–5",
+    "levelTags": [
+      "3",
+      "4",
+      "5"
+    ],
+    "howItWorks": "A group freezes in a scene; the class describes it (They're playing football)",
+    "prep": "None"
+  },
+  {
+    "id": "game-guess-who",
+    "name": "Guess who",
+    "levels": "3–6",
+    "levelTags": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "howItWorks": "Describe a classmate or cartoon character; others guess",
+    "prep": "Optional picture grid"
+  },
+  {
+    "id": "game-hide-the-toy",
+    "name": "Hide the toy",
+    "levels": "KG–3",
+    "levelTags": [
+      "KG",
+      "2",
+      "3"
+    ],
+    "howItWorks": "One child hides a toy; the class guides the seeker with hot / cold or in / on / under",
+    "prep": "A toy"
+  },
+  {
+    "id": "game-hot-potato",
+    "name": "Hot potato",
+    "levels": "KG–4",
+    "levelTags": [
+      "KG",
+      "2",
+      "3",
+      "4"
+    ],
+    "howItWorks": "Pass a ball to music; whoever holds it when the music stops answers a question",
+    "prep": "Ball, music"
+  },
+  {
+    "id": "game-hot-seat",
+    "name": "Hot seat",
+    "levels": "3–8",
+    "levelTags": [
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "One student sits facing the class as a character, animal or famous person; the class interviews them",
+    "prep": "None"
+  },
+  {
+    "id": "game-information-gap",
+    "name": "Information gap",
+    "levels": "4–8",
+    "levelTags": [
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Partners hold different halves of the information (timetable, map, fridge) and must ask to complete it",
+    "prep": "A/B cards"
+  },
+  {
+    "id": "game-kims-game-whats-missing",
+    "name": "Kim's game / What's missing?",
+    "levels": "KG–5",
+    "levelTags": [
+      "KG",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "howItWorks": "Show 6–10 objects, cover them, remove one; the class says what's missing",
+    "prep": "Objects or cards"
+  },
+  {
+    "id": "game-mingle-with-role-cards",
+    "name": "Mingle with role cards",
+    "levels": "5–8",
+    "levelTags": [
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Everyone gets a passport, ID or role card and meets as many people as possible",
+    "prep": "Cards"
+  },
+  {
+    "id": "game-monster-dictation",
+    "name": "Monster dictation",
+    "levels": "KG–3",
+    "levelTags": [
+      "KG",
+      "2",
+      "3"
+    ],
+    "howItWorks": "You describe a monster (three eyes, a big nose); children draw it, then compare",
+    "prep": "Paper"
+  },
+  {
+    "id": "game-mystery-bag",
+    "name": "Mystery bag",
+    "levels": "KG–4",
+    "levelTags": [
+      "KG",
+      "2",
+      "3",
+      "4"
+    ],
+    "howItWorks": "A child feels an object inside a bag and guesses: Is it a ball?",
+    "prep": "Cloth bag, objects"
+  },
+  {
+    "id": "game-pass-the-parcel",
+    "name": "Pass the parcel",
+    "levels": "2–3",
+    "levelTags": [
+      "2",
+      "3"
+    ],
+    "howItWorks": "Layers of paper with a question under each; unwrap when the music stops",
+    "prep": "Wrapped parcel"
+  },
+  {
+    "id": "game-role-play-shop-caf-vet-hotel",
+    "name": "Role-play (shop, café, vet, hotel)",
+    "levels": "2–8",
+    "levelTags": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Set up a counter, price tags or a menu; customers and staff swap roles",
+    "prep": "Props, menus"
+  },
+  {
+    "id": "game-shark-tank-pitch",
+    "name": "Shark Tank pitch",
+    "levels": "6–8",
+    "levelTags": [
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Groups invent and pitch a product; \"investors\" ask questions and vote",
+    "prep": "Paper for posters"
+  },
+  {
+    "id": "game-simon-says",
+    "name": "Simon says",
+    "levels": "KG–4",
+    "levelTags": [
+      "KG",
+      "2",
+      "3",
+      "4"
+    ],
+    "howItWorks": "Follow commands only when they start with \"Simon says\"",
+    "prep": "None"
+  },
+  {
+    "id": "game-slow-reveal",
+    "name": "Slow reveal",
+    "levels": "KG–5",
+    "levelTags": [
+      "KG",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "howItWorks": "Uncover a picture bit by bit on the projector; students guess with Is it a…?",
+    "prep": "Slides"
+  },
+  {
+    "id": "game-spot-the-difference",
+    "name": "Spot the difference",
+    "levels": "3–6",
+    "levelTags": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "howItWorks": "Pairs hold two similar pictures and find differences by describing, not showing",
+    "prep": "Picture pairs"
+  },
+  {
+    "id": "game-stand-up-if",
+    "name": "Stand up if…",
+    "levels": "2–4",
+    "levelTags": [
+      "2",
+      "3",
+      "4"
+    ],
+    "howItWorks": "Stand up if you like pizza! Students stand and say \"I like pizza\"",
+    "prep": "None"
+  },
+  {
+    "id": "game-story-dice",
+    "name": "Story dice",
+    "levels": "4–7",
+    "levelTags": [
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "howItWorks": "Roll picture dice and build a story using each picture",
+    "prep": "Dice or printed cards"
+  },
+  {
+    "id": "game-top-trumps",
+    "name": "Top Trumps",
+    "levels": "4–5",
+    "levelTags": [
+      "4",
+      "5"
+    ],
+    "howItWorks": "Compare card stats with comparatives: My elephant is heavier!",
+    "prep": "Animal cards"
+  },
+  {
+    "id": "game-traffic-lights",
+    "name": "Traffic lights",
+    "levels": "KG",
+    "levelTags": [
+      "KG"
+    ],
+    "howItWorks": "Red card = stop, green = go, yellow = walk slowly; add words and actions",
+    "prep": "Three coloured cards"
+  },
+  {
+    "id": "game-two-truths-and-a-lie",
+    "name": "Two truths and a lie",
+    "levels": "5–8",
+    "levelTags": [
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Say three sentences about yourself; the class finds the lie with questions",
+    "prep": "None"
+  },
+  {
+    "id": "game-verb-slap",
+    "name": "Verb slap",
+    "levels": "4–6",
+    "levelTags": [
+      "4",
+      "5",
+      "6"
+    ],
+    "howItWorks": "Verbs on the board; two players race to slap the past form you call",
+    "prep": "Board, fly swatters"
+  },
+  {
+    "id": "game-whats-the-time-mr-wolf",
+    "name": "What's the time, Mr Wolf?",
+    "levels": "2–3",
+    "levelTags": [
+      "2",
+      "3"
+    ],
+    "howItWorks": "The class asks the time; \"Mr Wolf\" answers until \"Dinner time!\" and chases",
+    "prep": "Open space"
+  },
+  {
+    "id": "game-would-you-rather",
+    "name": "Would you rather",
+    "levels": "4–8",
+    "levelTags": [
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "howItWorks": "Pick one of two options and say why: I'd rather… because…",
+    "prep": "Question list"
+  },
+  {
+    "id": "game-yummy-or-yucky",
+    "name": "Yummy or yucky",
+    "levels": "KG–2",
+    "levelTags": [
+      "KG",
+      "2"
+    ],
+    "howItWorks": "Show food cards; children rub tummies (yummy) or pull faces (yucky) and say it",
+    "prep": "Food cards"
+  }
+]
