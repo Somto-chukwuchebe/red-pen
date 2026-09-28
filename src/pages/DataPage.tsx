@@ -1,4 +1,4 @@
-import { FileUp, Share } from 'lucide-react';
+import { FileDown, FileUp, RefreshCw, Share } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Banner, Button, Card, PageHeader, SectionTitle, cx } from '../components/ui';
 import { useToast } from '../components/Toast';
@@ -10,9 +10,13 @@ import {
   parseBackup,
   previewImport,
   recordExport,
+  recordSent,
   shareOrDownload,
+  syncFrom,
+  syncState,
   type BackupFile,
   type ImportPreview,
+  type SyncResult,
 } from '../db/backup';
 import { useLocal } from '../db/hooks';
 import { useT } from '../i18n';
@@ -84,6 +88,8 @@ export function DataPage() {
       <PageHeader title={t.data.title} />
       <div className="flex max-w-3xl flex-col gap-5">
         <p className="text-ink-soft">{t.data.intro}</p>
+
+        <SyncCard />
 
         <Card>
           <SectionTitle>
@@ -203,5 +209,124 @@ export function DataPage() {
         </Card>
       </div>
     </>
+  );
+}
+
+/** Sync: send this device's data to your other device, or merge in what it sent — no preview, newest wins. */
+function SyncCard() {
+  const t = useT();
+  const toast = useToast();
+  const lastChange = useLocal<number>('lastChangeAt');
+  const lastSent = useLocal<number>('lastSentAt');
+  const lastImport = useLocal<{ at: number; fromDevice: string }>('lastImport');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<SyncResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+
+  const state = syncState(lastChange, lastSent, lastImport?.at);
+  const lastSync = Math.max(lastSent ?? 0, lastImport?.at ?? 0);
+  const since = lastSync ? dateTime(t.locale, lastSync) : t.data.never;
+
+  async function send() {
+    setBusy(true);
+    setError(null);
+    try {
+      const b = await buildBackup();
+      const blob = new Blob([JSON.stringify(b)], { type: 'application/json' });
+      // The share sheet everywhere it exists (on a Mac too: it has AirDrop); otherwise a download.
+      const how = await shareOrDownload(blob, backupFileName(b), true);
+      if (how !== 'cancelled') {
+        await recordSent(b);
+        setResult(null);
+        toast(how === 'shared' ? t.data.sentShared : t.data.sentSaved);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function bringIn(f: File | undefined) {
+    setError(null);
+    setResult(null);
+    if (!f) return;
+    setBusy(true);
+    try {
+      setResult(await syncFrom(parseBackup(await f.text())));
+    } catch (e) {
+      setError(e instanceof BackupError ? (t.data.errors[e.message] ?? t.errors.generic) : t.errors.generic);
+    } finally {
+      setBusy(false);
+      if (input.current) input.current.value = '';
+    }
+  }
+
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragging(false);
+        void bringIn(e.dataTransfer.files[0]);
+      }}
+      className={cx('rounded-2xl', dragging && 'outline-2 outline-offset-2 outline-pen outline-dashed')}
+    >
+      <Card>
+        <SectionTitle>{t.data.syncTitle}</SectionTitle>
+        <p className="mb-4 text-ink-soft">{t.data.syncIntro}</p>
+
+        <div className="mb-4">
+          <Banner tone={state === 'synced' ? 'good' : 'info'}>{state === 'never' ? t.data.syncNever : state === 'unsent' ? t.data.syncUnsent(since) : t.data.syncSynced(since)}</Banner>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <Button variant="primary" size="lg" icon={<Share size={20} />} onClick={send} disabled={busy}>
+            {t.data.sendButton}
+          </Button>
+          <input ref={input} type="file" accept="application/json,.json" className="sr-only" aria-hidden tabIndex={-1} onChange={(e) => bringIn(e.target.files?.[0])} />
+          <Button size="lg" icon={<FileDown size={20} />} onClick={() => input.current?.click()} disabled={busy}>
+            {t.data.bringButton}
+          </Button>
+        </div>
+        {dragging && <p className="mt-3 font-medium text-pen">{t.data.dropHere}</p>}
+
+        {error && (
+          <div className="mt-4">
+            <Banner tone="warn">{error}</Banner>
+          </div>
+        )}
+        {result && (
+          <div className="mt-4 flex flex-col gap-3">
+            <Banner tone="good">{result.changes ? t.data.syncedIn(result.changes, result.from) : t.data.alreadyUpToDate(result.from)}</Banner>
+            {result.sendBack > 0 && (
+              <Banner
+                tone="info"
+                action={
+                  <Button size="sm" icon={<RefreshCw size={16} />} onClick={send} disabled={busy}>
+                    {t.data.sendButton}
+                  </Button>
+                }
+              >
+                {t.data.sendBack(result.from)}
+              </Banner>
+            )}
+          </div>
+        )}
+
+        <ol className="mt-5 flex flex-col gap-2 text-sm text-ink-soft">
+          {t.data.syncSteps.map((step, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="font-semibold text-ink">{i + 1}.</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </Card>
+    </div>
   );
 }

@@ -20,7 +20,7 @@ export const en = {
     tools: 'Tools',
     more: 'More',
     settings: 'Settings',
-    data: 'Backup & move',
+    data: 'Sync & backup',
     install: 'Install',
     menu: 'Main menu',
     skip: 'Skip to content',
@@ -100,6 +100,9 @@ export const en = {
     never: 'You haven’t backed up this device yet.',
     old: (days: number) => `Your last backup was ${days} days ago.`,
     action: 'Back up now',
+    syncOld: (device: string, days: number) => `You’ve made changes here since you last synced with ${device} (${days === 1 ? 'yesterday' : `${days} days ago`}).`,
+    otherDevice: 'your other device',
+    syncAction: 'Sync now',
   },
 
   timetable: {
@@ -266,10 +269,28 @@ export const en = {
   },
 
   data: {
-    title: 'Backup & move',
+    title: 'Sync & backup',
     intro:
       'Red Pen keeps your data only on this device. Nothing is sent to any server. Back up regularly, and use the same file to move your data to another device.',
     status: 'This device',
+    syncTitle: 'Sync with your other devices',
+    syncIntro: 'Keeps your iPhone and Mac (or any two devices) the same. Nothing goes over the internet: you pass one file between them.',
+    sendButton: 'Send my changes',
+    bringButton: 'Bring in changes',
+    syncSteps: [
+      'On the device you used last, tap Send my changes and AirDrop the file to your other device (or send it to yourself in Telegram).',
+      'On the other device, tap Bring in changes and choose that file: on a Mac it’s in Downloads, on iPhone in Files → Downloads. On a computer you can also drag the file onto this box.',
+      'If you changed things on both devices, Red Pen tells you to send changes back the other way too.',
+    ],
+    syncNever: 'You haven’t synced this device yet.',
+    syncUnsent: (since: string) => `This device has changes you haven’t sent yet (last synced ${since}).`,
+    syncSynced: (since: string) => `Up to date: nothing new to send since ${since}.`,
+    sentShared: 'Sent. On your other device, tap Bring in changes and choose the file.',
+    sentSaved: 'Saved to Downloads. AirDrop it to your other device, then tap Bring in changes there.',
+    syncedIn: (n: number, device: string) => `Brought in ${n} ${n === 1 ? 'change' : 'changes'} from ${device}.`,
+    alreadyUpToDate: (device: string) => `Already up to date with ${device}.`,
+    sendBack: (device: string) => `This device also has changes that ${device} doesn’t. Send them back so both match.`,
+    dropHere: 'Drop the file here',
     lastChange: 'Last change here',
     lastBackup: 'Last backup',
     lastImport: 'Last import',
@@ -278,11 +299,11 @@ export const en = {
     newest: 'Most recent data',
     newestHere: 'This device has changes that aren’t in any backup yet.',
     newestBackedUp: 'Everything on this device is in your last backup.',
-    exportTitle: 'Back up or move',
+    exportTitle: 'Back up',
     exportHint: 'Saves one file with all your data. On iPhone and Android, the share sheet opens: choose Save to Files, or send it to yourself.',
     exportButton: 'Export all data',
     exported: 'Backup saved.',
-    importTitle: 'Restore or bring data in',
+    importTitle: 'Restore from a backup',
     importHint: 'Choose a Red Pen backup file. You’ll see what’s in it before anything changes.',
     chooseFile: 'Choose a backup file',
     previewTitle: 'What’s in this file',
@@ -306,13 +327,14 @@ export const en = {
     errors: {
       'not-json': 'That file isn’t a Red Pen backup (it isn’t JSON).',
       'not-red-pen': 'That file isn’t a Red Pen backup.',
-      'too-new': 'That backup comes from a newer version of Red Pen. Update this device first (reload the app).',
+      'too-new': 'That backup comes from a newer version of Red Pen. Update this device first (Settings → Check for updates).',
+      'same-device': 'That file was made on this device. Open it on your other device instead.',
     } as Record<string, string>,
     moveTitle: 'Move my data to another device',
     moveSteps: [
       'On the device with your latest data, tap Export all data.',
       'Send the file to the other device: AirDrop, Telegram “Saved Messages”, or email it to yourself.',
-      'On the other device, open Red Pen → Backup & move → Choose a backup file.',
+      'On the other device, open Red Pen → Sync & backup → Choose a backup file.',
       'Pick Replace if the other device is new or empty; pick Merge if both have data you want to keep.',
     ],
     tableNames: {
@@ -394,7 +416,7 @@ export const en = {
       ],
       firefox: [
         'Firefox on computers can’t install web apps.',
-        'Open Red Pen in Chrome, Edge or (on Mac) Safari instead. Your data is per browser, so use Backup & move to bring it across.',
+        'Open Red Pen in Chrome, Edge or (on Mac) Safari instead. Your data is per browser, so use Sync & backup to bring it across.',
       ],
     },
     art: {
@@ -407,7 +429,7 @@ export const en = {
     storageBody:
       'Safari can clear data for websites you haven’t visited for a few weeks. Red Pen on your Home Screen counts as an app and is protected. Data in Safari and in the installed app are separate, so install first, then add your data there.',
     oneDevice:
-      'Each device keeps its own copy of your data. Use Backup & move to copy it from one device to another.',
+      'Each device keeps its own copy of your data. Use Sync & backup to copy it from one device to another.',
   },
 
   groupPage: {

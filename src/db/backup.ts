@@ -121,6 +121,8 @@ export interface TablePreview {
   updated: number;
   keptLocal: number;
   deleted: number;
+  /** Changes on this device that the file doesn't have (so the other device needs them). */
+  onlyHere: number;
 }
 
 export interface MergePlan {
@@ -144,12 +146,18 @@ export function planMerge(
   let added = 0;
   let updated = 0;
   let keptLocal = 0;
+  let deletedHereOnly = 0;
+  const incomingIds = new Set(incoming.map((r) => r.id));
+  const incomingDeletedAt = new Map(incomingTombs.filter((t) => t.table === table).map((t) => [t.recordId, t.deletedAt]));
 
   for (const r of incoming) {
     const mine = localById.get(r.id);
     if (!mine) {
       const deletedHere = localDeletedAt.get(r.id);
-      if (deletedHere !== undefined && deletedHere >= r.updatedAt) continue; // I deleted it after their last edit
+      if (deletedHere !== undefined && deletedHere >= r.updatedAt) {
+        deletedHereOnly++; // I deleted it after their last edit
+        continue;
+      }
       put.push(r);
       added++;
     } else if (r.updatedAt > mine.updatedAt) {
@@ -163,12 +171,19 @@ export function planMerge(
     const mine = localById.get(t.recordId);
     if (mine && mine.updatedAt <= t.deletedAt && !put.some((p) => p.id === t.recordId)) del.push(t.recordId);
   }
+  // Records only this device has (and the other device hasn't deleted since).
+  let newHere = 0;
+  for (const r of local) {
+    if (incomingIds.has(r.id)) continue;
+    const deletedThere = incomingDeletedAt.get(r.id);
+    if (deletedThere === undefined || deletedThere < r.updatedAt) newHere++;
+  }
 
   return {
     table,
     put,
     delete: del,
-    preview: { table, inFile: incoming.length, onDevice: local.length, added, updated, keptLocal, deleted: del.length },
+    preview: { table, inFile: incoming.length, onDevice: local.length, added, updated, keptLocal, deleted: del.length, onlyHere: keptLocal + newHere + deletedHereOnly },
   };
 }
 
@@ -203,7 +218,7 @@ export async function previewImport(file: BackupFile, mode: 'merge' | 'replace')
     const local = await db.table(t).toArray();
     const incoming = (file.tables[t] ?? []) as Stamped[];
     if (mode === 'replace') {
-      tables.push({ table: t, inFile: incoming.length, onDevice: local.length, added: incoming.length, updated: 0, keptLocal: 0, deleted: local.length });
+      tables.push({ table: t, inFile: incoming.length, onDevice: local.length, added: incoming.length, updated: 0, keptLocal: 0, deleted: local.length, onlyHere: 0 });
     } else {
       tables.push(planMerge(t, local, incoming, localTombs, file.tombstones).preview);
     }
@@ -243,6 +258,56 @@ export async function applyImport(file: BackupFile, mode: 'merge' | 'replace') {
     await db.local.put({ key: 'lastImport', value: { at: Date.now(), fromDevice: file.deviceName, exportedAt: file.exportedAt, mode } });
     await db.local.put({ key: 'lastChangeAt', value: Date.now() });
   });
+}
+
+// ─── Sync between your own devices ──────────────────────────────────────
+//
+// Sync is a backup file sent to your other device and merged there without the
+// preview. Each device remembers when it last sent its data, so it can tell you
+// when it has changes the other device doesn't have yet.
+
+/** After sending a file (built with buildBackup): everything up to now is on the other device. */
+export async function recordSent(b: BackupFile) {
+  await setLocal('lastExportAt', b.exportedAt);
+  await setLocal('lastSentAt', b.exportedAt);
+}
+
+export interface SyncResult {
+  from: string;
+  /** Records added, updated or removed on this device. */
+  changes: number;
+  /** Changes this device has that the other one doesn't: send them back. */
+  sendBack: number;
+}
+
+/** Merge a file from another of your devices, straight away (merge never throws away newer work). */
+export async function syncFrom(file: BackupFile): Promise<SyncResult> {
+  if (file.deviceId === (await deviceId())) throw new BackupError('same-device');
+  const preview = await previewImport(file, 'merge');
+  const changes = preview.tables.reduce((s, r) => s + r.added + r.updated + r.deleted, 0);
+  const sendBack = preview.tables.reduce((s, r) => s + r.onlyHere, 0);
+  if (changes > 0) await applyImport(file, 'merge');
+  else await setLocal('lastImport', { at: Date.now(), fromDevice: file.deviceName, exportedAt: file.exportedAt, mode: 'merge' });
+  // Nothing here that the other device lacks: the two are now the same, and
+  // everything on this device is also in that file (so it counts as backed up).
+  if (sendBack === 0) {
+    await setLocal('lastSentAt', Date.now());
+    await setLocal('lastExportAt', Date.now());
+  } else {
+    // The other device is missing things from here: show "not sent yet" until you send.
+    await setLocal('lastSentAt', 0);
+    if ((await getLocal<number>('lastChangeAt')) === undefined) await setLocal('lastChangeAt', Date.now());
+  }
+  return { from: file.deviceName, changes, sendBack };
+}
+
+export type SyncState = 'never' | 'unsent' | 'synced';
+
+/** Has this device changed since it last sent (or matched) its data? */
+export function syncState(lastChangeAt: number | undefined, lastSentAt: number | undefined, lastImportAt: number | undefined): SyncState {
+  if (lastSentAt === undefined && lastImportAt === undefined) return 'never';
+  if (lastChangeAt !== undefined && (lastSentAt === undefined || lastChangeAt > lastSentAt)) return 'unsent';
+  return 'synced';
 }
 
 // ─── Sharing / saving the file ──────────────────────────────────────────

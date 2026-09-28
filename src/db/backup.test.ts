@@ -3,8 +3,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Stamped, StoredFile, Student, Tombstone } from '../domain/types';
 import { _useDatabase, db, SYNCED_TABLES } from './db';
-import { applyImport, buildBackup, parseBackup, planMerge, previewImport } from './backup';
-import { remove, save, setLocal } from './repo';
+import { applyImport, BackupError, buildBackup, parseBackup, planMerge, previewImport, recordSent, syncFrom, syncState } from './backup';
+import { getLocal, remove, save, setLocal } from './repo';
 import { ensureSeeded } from './seed';
 
 let n = 0;
@@ -82,5 +82,65 @@ describe('merge rules', () => {
   it('applies deletions from the other device unless edited here since', () => {
     expect(planMerge('students', [r('a', 10)], [], [], [tomb('a', 20)]).delete).toEqual(['a']);
     expect(planMerge('students', [r('a', 30)], [], [], [tomb('a', 20)]).delete).toEqual([]);
+  });
+});
+
+describe('sync between your own devices', () => {
+  const state = async () => syncState(await getLocal<number>('lastChangeAt'), await getLocal<number>('lastSentAt'), (await getLocal<{ at: number }>('lastImport'))?.at);
+
+  it('brings changes across, and knows when both devices match', async () => {
+    // The MacBook (set up in beforeEach) adds a student and sends its data.
+    await save<Student>('students', { id: 'st1', groupId: 'g-2a', name: 'Маша', notes: '', active: true });
+    const fromMac = await buildBackup();
+    await recordSent(fromMac);
+    expect(await state()).toBe('synced');
+
+    // A brand-new iPhone brings it in: everything arrives, and there's nothing to send back.
+    _useDatabase(`test-sync-iphone-${n}`);
+    await setLocal('deviceName', 'iPhone');
+    expect(await state()).toBe('never');
+    const first = await syncFrom(parseBackup(JSON.stringify(fromMac)));
+    expect(first.from).toBe('MacBook');
+    expect(first.changes).toBeGreaterThan(0);
+    expect(first.sendBack).toBe(0);
+    expect((await db.students.get('st1'))?.name).toBe('Маша');
+    expect(await state()).toBe('synced');
+
+    // Bringing the same file in again changes nothing.
+    expect((await syncFrom(parseBackup(JSON.stringify(fromMac)))).changes).toBe(0);
+
+    // The iPhone logs something new (a moment later): now it has changes the MacBook needs.
+    await new Promise((r) => setTimeout(r, 5));
+    await save<Student>('students', { id: 'st2', groupId: 'g-2a', name: 'Lev', notes: '', active: true });
+    expect(await state()).toBe('unsent');
+    const again = await syncFrom(parseBackup(JSON.stringify(fromMac)));
+    expect(again).toMatchObject({ changes: 0, sendBack: 1 });
+    expect(await state()).toBe('unsent');
+  });
+
+  it('counts a deletion made here as something to send back', async () => {
+    await save<Student>('students', { id: 'st1', groupId: 'g-2a', name: 'Маша', notes: '', active: true });
+    const file = await buildBackup();
+    _useDatabase(`test-sync-del-${n}`);
+    await syncFrom(parseBackup(JSON.stringify(file)));
+    await remove('students', 'st1');
+    expect((await syncFrom(parseBackup(JSON.stringify(file)))).sendBack).toBe(1);
+    expect(await db.students.get('st1')).toBeUndefined();
+  });
+
+  it('shows "not sent yet" when the other device is missing something from here', async () => {
+    await save<Student>('students', { id: 'st1', groupId: 'g-2a', name: 'Маша', notes: '', active: true });
+    await recordSent(await buildBackup());
+    await new Promise((r) => setTimeout(r, 5));
+    const file = await buildBackup();
+    file.deviceId = 'other';
+    file.tables.students = file.tables.students!.filter((x) => x.id !== 'st1');
+    expect((await syncFrom(file)).sendBack).toBe(1);
+    expect(await state()).toBe('unsent');
+  });
+
+  it("won't merge a file made on this same device", async () => {
+    const own = await buildBackup();
+    await expect(syncFrom(own)).rejects.toThrow(BackupError);
   });
 });

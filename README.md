@@ -15,7 +15,7 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
 0. [Daily use](#0-daily-use)
 1. [Run it on your MacBook](#1-run-it-on-your-macbook)
 2. [Install it on each device](#2-install-it-on-each-device)
-3. [Back up, restore and move your data](#3-back-up-restore-and-move-your-data)
+3. [Sync, back up and restore your data](#3-sync-back-up-and-restore-your-data)
 4. [Publish it on GitHub Pages](#4-publish-it-on-github-pages)
 5. [Import your curriculum](#5-import-your-curriculum)
 6. [Native iPhone and Android apps with widgets](#6-native-iphone-and-android-apps-with-widgets)
@@ -115,7 +115,7 @@ Other commands:
 
 Open Red Pen's web address (section 4) on the device, then follow the steps below. The app also has an **Install** page (in **More** on phones) that detects your device and shows these steps with pictures.
 
-> **Each device keeps its own data.** Installing on a new device gives you a fresh copy. Bring your data across with **Backup & move** (section 3).
+> **Each device keeps its own data.** Installing on a new device gives you a fresh copy. Bring your data across with **Sync & backup** (section 3).
 
 ### iPhone (iOS 16.4 or later)
 
@@ -150,9 +150,22 @@ Open **Settings → Storage**. "Protected" means the browser has agreed not to c
 
 ---
 
-## 3. Back up, restore and move your data
+## 3. Sync, back up and restore your data
 
-Everything is in **Backup & move** (in **More** on phones).
+Everything is in **Sync & backup** (in **More** on phones).
+
+### Keeping your iPhone and Mac in step
+
+Nothing goes over the internet: you pass one file between the devices.
+
+1. On the device you used last, tap **Send my changes**. The share sheet opens (on a Mac too, where the browser supports it): choose **AirDrop** and your other device. Where there's no share sheet, the file goes to Downloads; AirDrop it from there.
+2. On the other device, tap **Bring in changes** and choose the file (Mac: Downloads; iPhone: Files → Downloads). On a computer you can also drag the file onto the Sync box.
+3. It's merged straight away: for each lesson, log, student and so on, the newer version wins, and deletions carry across. You'll see "Brought in 12 changes from MacBook".
+4. If the device you brought the file into also had changes the other one doesn't, Red Pen says so: tap **Send my changes** there and bring it in on the first device. Both then match.
+
+The Sync box shows whether this device has changes you haven't sent yet. Once you've synced, **Today** reminds you if this device has had unsent changes for more than a day. A file made on the same device is refused, and bringing in the same file twice does nothing. Sending (or a sync that leaves both devices the same) also counts as a backup.
+
+### Backups
 
 - **Back up:** tap **Export all data**. On iPhone and Android the share sheet opens: choose **Save to Files**, or send it to yourself (Telegram "Saved Messages", email). On a laptop the file downloads.
   The file is named like `red-pen-iPhone-2026-09-28-1405.json`.
