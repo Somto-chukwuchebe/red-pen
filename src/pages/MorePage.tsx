@@ -1,4 +1,4 @@
-import { ChevronRight, Download, Settings, Share2 } from 'lucide-react';
+import { CalendarDays, ChevronRight, Download, Settings, Share2 } from 'lucide-react';
 import { Link } from 'react-router';
 import { BackupReminder } from '../components/BackupReminder';
 import { PageHeader } from '../components/ui';
@@ -8,6 +8,7 @@ import { useT } from '../i18n';
 export function MorePage() {
   const t = useT();
   const items = [
+    { to: '/timetable', label: t.nav.timetable, icon: <CalendarDays aria-hidden /> },
     { to: '/data', label: t.nav.data, icon: <Share2 aria-hidden /> },
     { to: '/settings', label: t.nav.settings, icon: <Settings aria-hidden /> },
     { to: '/install', label: t.nav.install, icon: <Download aria-hidden /> },

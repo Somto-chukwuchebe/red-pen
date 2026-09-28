@@ -1,6 +1,6 @@
 # Red Pen
 
-A teaching workspace for English speaking clubs: today's lessons, the year's curriculum, the timetable, groups and (coming next) lesson logs, progress and classroom tools.
+A teaching workspace: today's lessons, the year's curriculum, the timetable, groups, a 30-second lesson log, and (coming next) lesson planning, progress and classroom tools. Built for English speaking clubs, and usable by any teacher.
 
 - **Works offline.** Once opened, everything is cached on the device.
 - **Private.** No accounts, no server. Children's names and notes never leave your devices.
@@ -12,6 +12,7 @@ A teaching workspace for English speaking clubs: today's lessons, the year's cur
 
 ## Contents
 
+0. [Daily use](#0-daily-use)
 1. [Run it on your MacBook](#1-run-it-on-your-macbook)
 2. [Install it on each device](#2-install-it-on-each-device)
 3. [Back up, restore and move your data](#3-back-up-restore-and-move-your-data)
@@ -19,6 +20,29 @@ A teaching workspace for English speaking clubs: today's lessons, the year's cur
 5. [Re-import the curriculum](#5-re-import-the-curriculum)
 6. [Native iPhone and Android apps with widgets](#6-native-iphone-and-android-apps-with-widgets)
 7. [For the curious: how it's built](#7-for-the-curious-how-its-built)
+8. [Sharing Red Pen with other teachers](#8-sharing-red-pen-with-other-teachers)
+
+---
+
+## 0. Daily use
+
+- **Today** lists today's lessons in order, with each group's next planned lesson. The next one is marked **Next**.
+  - **Start lesson** shows the plan in big type, which works well on the projector: focus, key language, games and lesson stages with minutes. When you're done, tap **Done** or press **D**.
+  - **Log** opens the quick log straight away.
+- **The 30-second log:**
+  1. Everyone is present unless you say otherwise.
+  2. Tap a child's name each time they speak (tap again for 2, 3…; the small − takes one off). Switch to **Absent** to mark absences.
+  3. Tap what worked, and optionally the class energy (1–5, or press the number keys) and a note.
+  4. Tap **Done** or press **D**.
+
+  The group then moves on to its next planned lesson automatically. Cancelled lessons and test-week reviews don't move it on, and you can change where it goes under "Next time".
+- **Week** shows the whole week: planned, taught, not logged yet (amber) and cancelled. Tap a lesson to log it or edit its log.
+- **Groups → a group** has:
+  - the progress bar and "Change the next lesson";
+  - **Class teacher** (where they are in the textbook; changing the module can move your plan to match);
+  - students (paste a list of names);
+  - the can-do checklist for the current module;
+  - the lesson history, with an **Attendance (CSV)** export for Excel or Google Sheets.
 
 ---
 
@@ -212,3 +236,19 @@ The model follows the brief, with these changes:
 ### Database changes (migrations)
 
 `src/db/db.ts` defines the schema as `db.version(1)`. To change it later, add `db.version(2).stores({...}).upgrade(...)` below; existing data on every device is upgraded automatically the next time it opens.
+
+---
+
+## 8. Sharing Red Pen with other teachers
+
+Send them the address: `https://somto-chukwuchebe.github.io/red-pen/`.
+
+- **Everyone's data is separate and private.** Red Pen stores data only on the device where it's entered. Another teacher using the same address sees none of your groups, students or notes, and you see none of theirs.
+- **First launch shows a setup wizard.** A new teacher chooses the language (English or Russian), enters their subject, then:
+  - **starts from the example groups**, ticking the ones they need and renaming them;
+  - **adds their own groups** (name, lessons per week, lesson length); or
+  - **restores a backup** from another device.
+  Then they set their school year: week 1, terms (quarters or trimesters) and holidays.
+- **Curriculum:** English teachers can use the built-in Spotlight-aligned curriculum. Teachers of other subjects start without one. Uploading your own curriculum (Word or PDF) and building one by hand in the planner come in the next phase.
+- **Everything is customisable afterwards:** groups can be added, edited, archived or deleted, and name, subject, calendar and language are in **Settings**.
+- Your own devices never see the wizard; it only appears on a device with no Red Pen data yet.

@@ -6,8 +6,9 @@ import type { ScheduleData } from '../lib/schedule';
 import { db } from './db';
 import { SETTINGS_ID } from './seed';
 
-export function useSettings(): Settings | undefined {
-  return useLiveQuery(() => db.settings.get(SETTINGS_ID), []);
+/** `undefined` while loading, `null` if this device hasn't been set up yet. */
+export function useSettings(): Settings | null | undefined {
+  return useLiveQuery(async () => (await db.settings.get(SETTINGS_ID)) ?? null, []);
 }
 
 export function useGroups(includeArchived = false): Group[] | undefined {

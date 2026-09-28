@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { _useDatabase, db } from './db';
-import { ensureSeeded, reloadCurriculum } from './seed';
+import { SEED_GROUPS } from '../seed/groups';
+import { ensureSeeded, exampleSetup, reloadCurriculum, setupNewDevice } from './seed';
 
 let n = 0;
 beforeEach(() => {
@@ -37,5 +38,31 @@ describe('first-run seeding', () => {
     await reloadCurriculum();
     expect((await db.groups.get('g-3a'))!.currentPlannedLessonId).toBe(before);
     expect(await db.modules.get('my-own')).toBeTruthy();
+  });
+});
+
+describe('the setup wizard for another teacher', () => {
+  it('creates only their own groups, without the English curriculum', async () => {
+    const ex = exampleSetup();
+    await setupNewDevice({
+      ...ex,
+      subject: 'Математика',
+      language: 'ru',
+      teacherName: 'Анна',
+      includeBuiltInCurriculum: false,
+      groups: [{ ...SEED_GROUPS[0], id: 'g-x', name: '6В', curriculumKey: '', startAt: undefined }],
+    });
+    expect((await db.groups.toArray()).map((g) => [g.name, g.currentPlannedLessonId])).toEqual([['6В', null]]);
+    expect(await db.curricula.count()).toBe(0);
+    expect(await db.games.count()).toBe(0);
+    expect(await db.settings.get('settings')).toMatchObject({ subject: 'Математика', language: 'ru', teacherName: 'Анна' });
+  });
+
+  it('keeps chosen example groups on the built-in curriculum', async () => {
+    const ex = exampleSetup();
+    await setupNewDevice({ ...ex, groups: ex.groups.filter((g) => g.name === '3b' || g.name === 'KG Little') });
+    const groups = await db.groups.toArray();
+    expect(groups.map((g) => g.name)).toEqual(['3b', 'KG Little']);
+    expect(groups.every((g) => g.currentPlannedLessonId)).toBe(true);
   });
 });

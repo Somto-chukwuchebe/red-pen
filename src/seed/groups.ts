@@ -2,9 +2,9 @@
 
 import type { DateRange, Group } from '../domain/types';
 
-type SeedGroup = Omit<Group, 'updatedAt' | 'currentPlannedLessonId'> & {
+export type SeedGroup = Omit<Group, 'updatedAt' | 'currentPlannedLessonId'> & {
   /** Where the lesson pointer starts on a fresh install. */
-  startAt: { module: 'first' | 'module-1'; label?: string };
+  startAt?: { module: 'first' | 'module-1'; label?: string };
 };
 
 const primary = (grade: number, letter: string, colour: string, order: number): SeedGroup => ({
@@ -93,6 +93,22 @@ export const SEED_QUARTERS: DateRange[] = [
   { name: 'Q3', start: '2027-01-11', end: '2027-03-19' },
   { name: 'Q4', start: '2027-03-29', end: '2027-05-21' },
 ];
+
+/** Russian names for the same terms and holidays (used when a teacher sets up in Russian). */
+export const RU_NAMES: Record<string, string> = {
+  Q1: '1 четверть',
+  Q2: '2 четверть',
+  Q3: '3 четверть',
+  Q4: '4 четверть',
+  'Autumn break': 'Осенние каникулы',
+  'National Unity Day': 'День народного единства',
+  'Winter break': 'Зимние каникулы',
+  'Defender of the Fatherland Day': 'День защитника Отечества',
+  "International Women's Day": 'Международный женский день',
+  'Spring break': 'Весенние каникулы',
+  'Spring and Labour Day (observed)': 'Праздник Весны и Труда (перенос)',
+  'Victory Day (observed)': 'День Победы (перенос)',
+};
 
 export const SEED_HOLIDAYS: DateRange[] = [
   { name: 'Autumn break', start: '2026-10-26', end: '2026-11-01' },

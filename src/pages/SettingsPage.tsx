@@ -1,13 +1,14 @@
-import { Plus, ShieldCheck, ShieldAlert, Trash2 } from 'lucide-react';
+import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { CalendarFields, cleanCalendar, type CalendarValue } from '../components/CalendarFields';
 import { useEffect, useState } from 'react';
-import { BareInput, Banner, Button, Card, PageHeader, Segmented, SectionTitle, TextInput } from '../components/ui';
+import { Banner, Button, Card, PageHeader, Segmented, SectionTitle, TextInput } from '../components/ui';
 import { useToast } from '../components/Toast';
 import { useLocal, useSettings } from '../db/hooks';
 import { patch, setLocal } from '../db/repo';
 import { reloadCurriculum } from '../db/seed';
-import type { DateRange, Settings } from '../domain/types';
+import type { Settings } from '../domain/types';
 import { useT } from '../i18n';
-import { checkCalendar, totalTeachingWeeks } from '../lib/calendar';
+import { checkCalendar } from '../lib/calendar';
 import { bytes } from '../lib/format';
 import { detectPlatform } from '../lib/platform';
 import { requestPersistentStorage, storageState, type PersistState } from '../lib/storage';
@@ -27,6 +28,10 @@ export function SettingsPage() {
         <Card>
           <SectionTitle>{t.settings.device}</SectionTitle>
           <div className="flex flex-col gap-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <BlurInput label={t.setup.yourName} value={settings.teacherName ?? ''} onSave={(v) => set({ teacherName: v })} />
+              <BlurInput label={t.setup.subject} value={settings.subject ?? 'English'} onSave={(v) => v && set({ subject: v })} />
+            </div>
             <DeviceName value={deviceName ?? ''} />
             <div>
               <p className="mb-2 text-sm font-medium">{t.settings.theme}</p>
@@ -73,6 +78,15 @@ export function SettingsPage() {
       </div>
     </>
   );
+}
+
+/** A text field that saves when you leave it. */
+function BlurInput({ label, value, onSave }: { label: string; value: string; onSave: (v: string) => void }) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    setV(value);
+  }, [value]);
+  return <TextInput label={label} value={v} onChange={(e) => setV(e.target.value)} onBlur={() => v.trim() !== value && onSave(v.trim())} />;
 }
 
 function DeviceName({ value }: { value: string }) {
@@ -125,59 +139,19 @@ export function StorageCard() {
   );
 }
 
-function CalendarEditor({ settings, onSave }: { settings: Settings; onSave: (c: Pick<Settings, 'yearStart' | 'quarters' | 'holidays'>) => void }) {
+function CalendarEditor({ settings, onSave }: { settings: Settings; onSave: (c: CalendarValue) => void }) {
   const t = useT();
-  const [c, setC] = useState({ yearStart: settings.yearStart, quarters: settings.quarters, holidays: settings.holidays });
+  const saved = { yearStart: settings.yearStart, quarters: settings.quarters, holidays: settings.holidays };
+  const [c, setC] = useState<CalendarValue>(saved);
   useEffect(() => {
     setC({ yearStart: settings.yearStart, quarters: settings.quarters, holidays: settings.holidays });
   }, [settings.yearStart, settings.quarters, settings.holidays]);
-  const problems = checkCalendar(c);
-  const dirty = JSON.stringify(c) !== JSON.stringify({ yearStart: settings.yearStart, quarters: settings.quarters, holidays: settings.holidays });
-
-  const editRange = (key: 'quarters' | 'holidays', i: number, p: Partial<DateRange>) => setC((x) => ({ ...x, [key]: x[key].map((r, j) => (j === i ? { ...r, ...p } : r)) }));
-
-  const rangeRow = (key: 'quarters' | 'holidays', r: DateRange, i: number) => (
-    <li key={i} className="grid grid-cols-[1fr_auto] gap-2 rounded-xl bg-sunk p-2 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-center sm:bg-transparent sm:p-0">
-      <BareInput aria-label={t.settings.holidayName} value={r.name} onChange={(e) => editRange(key, i, { name: e.target.value })} readOnly={key === 'quarters'} className={key === 'quarters' ? 'border-transparent bg-transparent font-semibold' : ''} />
-      <div className="col-span-2 row-start-2 grid grid-cols-2 gap-2 sm:col-span-2 sm:row-start-auto">
-        <BareInput aria-label={`${r.name} ${t.settings.from}`} type="date" value={r.start} onChange={(e) => editRange(key, i, { start: e.target.value })} />
-        <BareInput aria-label={`${r.name} ${t.settings.to}`} type="date" value={r.end} onChange={(e) => editRange(key, i, { end: e.target.value })} />
-      </div>
-      {key === 'holidays' ? (
-        <Button variant="ghost" size="sm" aria-label={`${t.common.delete} ${r.name}`} onClick={() => setC((x) => ({ ...x, holidays: x.holidays.filter((_, j) => j !== i) }))} className="col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto">
-          <Trash2 size={18} />
-        </Button>
-      ) : (
-        <span className="hidden sm:block sm:w-9" />
-      )}
-    </li>
-  );
-
+  const dirty = JSON.stringify(c) !== JSON.stringify(saved);
   return (
     <div className="flex flex-col gap-5">
-      <div className="max-w-xs">
-        <TextInput label={t.settings.yearStart} type="date" value={c.yearStart} onChange={(e) => setC({ ...c, yearStart: e.target.value })} />
-      </div>
-      <div>
-        <h3 className="mb-2 font-semibold">
-          {t.settings.quarters} <span className="font-normal text-ink-soft">· {t.settings.teachingWeeks(totalTeachingWeeks(c))}</span>
-        </h3>
-        <ul className="flex flex-col gap-2">{c.quarters.map((r, i) => rangeRow('quarters', r, i))}</ul>
-      </div>
-      <div>
-        <h3 className="mb-2 font-semibold">{t.settings.holidays}</h3>
-        <ul className="flex flex-col gap-2">{c.holidays.map((r, i) => rangeRow('holidays', r, i))}</ul>
-        <Button size="sm" variant="ghost" icon={<Plus size={16} />} className="mt-2" onClick={() => setC((x) => ({ ...x, holidays: [...x.holidays, { name: '', start: x.yearStart, end: x.yearStart }] }))}>
-          {t.settings.addHoliday}
-        </Button>
-      </div>
-      {problems.length > 0 && <Banner tone="warn">{problems.map((p) => <div key={p.message}>{p.message}</div>)}</Banner>}
+      <CalendarFields value={c} onChange={setC} />
       <div className="flex justify-end">
-        <Button
-          variant="primary"
-          disabled={!dirty || problems.length > 0}
-          onClick={() => onSave({ ...c, holidays: [...c.holidays].filter((h) => h.name.trim()).sort((a, b) => a.start.localeCompare(b.start)) })}
-        >
+        <Button variant="primary" disabled={!dirty || checkCalendar(c).length > 0} onClick={() => onSave(cleanCalendar(c))}>
           {t.common.save}
         </Button>
       </div>

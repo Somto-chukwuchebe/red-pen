@@ -13,6 +13,13 @@ beforeEach(async () => {
 });
 
 describe('the app', () => {
+  it('shows the setup wizard on a brand-new device', async () => {
+    _useDatabase(`test-app-empty-${n}`);
+    const { App } = await import('./App');
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: /Welcome to Red Pen|Добро пожаловать/ })).toBeInTheDocument();
+  });
+
   it('starts and shows the seeded groups', async () => {
     const { App } = await import('./App');
     render(<App />);

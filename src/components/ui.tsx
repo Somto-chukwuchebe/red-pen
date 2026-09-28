@@ -29,7 +29,7 @@ const variants: Record<Variant, string> = {
 
 export function buttonClasses(variant: Variant = 'secondary', size: 'md' | 'sm' | 'lg' = 'md', className?: string) {
   return cx(
-    'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none select-none',
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none select-none',
     size === 'sm' && 'min-h-9 px-3 text-sm',
     size === 'md' && 'min-h-11 px-4',
     size === 'lg' && 'min-h-14 px-6 text-lg',

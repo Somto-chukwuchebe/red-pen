@@ -258,6 +258,9 @@ export interface Settings extends Stamped {
   theme: 'system' | 'light' | 'dark';
   language: 'en' | 'ru';
   showSaturday: boolean;
+  /** The subject this teacher teaches (e.g. "English"). Missing on devices set up before the wizard = English. */
+  subject?: string;
+  teacherName?: string;
 }
 
 /** Removed records are remembered so a merge doesn't bring them back. */

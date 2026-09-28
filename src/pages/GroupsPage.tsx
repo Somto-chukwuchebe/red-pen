@@ -1,10 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { Button, Dialog, Field, GroupDot, PageHeader, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
 import { useToast } from '../components/Toast';
 import { db } from '../db/db';
 import { useGroups } from '../db/hooks';
+import { deleteGroup } from '../db/logs';
 import { newId, save } from '../db/repo';
 import type { Group, GroupType } from '../domain/types';
 import { useT } from '../i18n';
@@ -37,7 +39,7 @@ export function GroupsPage() {
     name: '',
     type: 'primary',
     grade: 2,
-    curriculumKey: 'grade-2',
+    curriculumKey: '',
     lessonsPerWeek: 2,
     lessonLengthMin: 40,
     textbook: '',
@@ -65,7 +67,7 @@ export function GroupsPage() {
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {visible.map((g) => (
           <li key={g.id}>
-            <button type="button" onClick={() => setEditing(g)} className={cx('w-full text-left', g.archived && 'opacity-60')}>
+            <Link to={`/groups/${g.id}`} className={cx('block w-full text-left', g.archived && 'opacity-60')}>
               <span className="relative block h-full overflow-hidden rounded-2xl border border-line bg-card p-4 pl-5 transition-shadow hover:shadow-md sm:p-5">
                 <span aria-hidden className="absolute inset-y-0 left-0 w-1.5" style={{ background: g.colour }} />
                 <span className="flex items-baseline justify-between gap-2">
@@ -84,7 +86,7 @@ export function GroupsPage() {
                   <span className="block mt-1 text-sm font-medium text-amber">{t.timetable.countLine(g.name, slotCounts.get(g.id) ?? 0, g.lessonsPerWeek)}</span>
                 )}
               </span>
-            </button>
+            </Link>
           </li>
         ))}
       </ul>
@@ -96,7 +98,7 @@ export function GroupsPage() {
   );
 }
 
-function GroupEditor({ group, onClose }: { group: Group; onClose: () => void }) {
+export function GroupEditor({ group, onClose, onDeleted }: { group: Group; onClose: () => void; onDeleted?: () => void }) {
   const t = useT();
   const toast = useToast();
   const [g, setG] = useState<Group>(group);
@@ -110,7 +112,8 @@ function GroupEditor({ group, onClose }: { group: Group; onClose: () => void }) 
     if (!g.name.trim()) return;
     let pointer = g.currentPlannedLessonId;
     // A new group, or one moved to a different curriculum, starts at its first lesson.
-    if (!group.id || group.curriculumKey !== g.curriculumKey) {
+    if (!g.curriculumKey) pointer = null;
+    else if (!group.id || group.curriculumKey !== g.curriculumKey) {
       const first = await db.modules.where('curriculumKey').equals(g.curriculumKey).sortBy('order');
       const lessons = first[0] ? await db.lessons.where('moduleId').equals(first[0].id).sortBy('order') : [];
       pointer = lessons[0]?.id ?? null;
@@ -128,6 +131,20 @@ function GroupEditor({ group, onClose }: { group: Group; onClose: () => void }) 
       wide
       footer={
         <>
+          {group.id && (
+            <Button
+              variant="quiet-danger"
+              className="mr-auto"
+              onClick={async () => {
+                if (!confirm(t.groups.confirmDelete(group.name))) return;
+                await deleteGroup(group.id);
+                onClose();
+                onDeleted?.();
+              }}
+            >
+              {t.common.delete}
+            </Button>
+          )}
           <Button onClick={onClose}>{t.common.cancel}</Button>
           <Button variant="primary" onClick={onSave}>
             {t.common.save}
@@ -145,6 +162,7 @@ function GroupEditor({ group, onClose }: { group: Group; onClose: () => void }) 
           ))}
         </Select>
         <Select label={t.groups.fields.curriculum} value={g.curriculumKey} onChange={(e) => set('curriculumKey', e.target.value)}>
+          <option value="">{t.groups.noCurriculum}</option>
           {curricula?.map((c) => (
             <option key={c.key} value={c.key}>
               {c.title}

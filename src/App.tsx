@@ -7,12 +7,16 @@ import { LanguageProvider } from './i18n';
 import { CurriculumPage } from './pages/CurriculumPage';
 import { DataPage } from './pages/DataPage';
 import { ErrorPage } from './pages/ErrorPage';
+import { GroupPage } from './pages/GroupPage';
 import { GroupsPage } from './pages/GroupsPage';
 import { InstallPage } from './pages/InstallPage';
+import { LessonPage } from './pages/LessonPage';
 import { MorePage } from './pages/MorePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { SetupWizard } from './pages/SetupWizard';
 import { TimetablePage } from './pages/TimetablePage';
 import { TodayPage } from './pages/TodayPage';
+import { WeekPage } from './pages/WeekPage';
 
 // Hash-based addresses (#/today) work on GitHub Pages and inside the future
 // native app without any server configuration.
@@ -23,8 +27,11 @@ const router = createHashRouter([
     children: [
       { index: true, element: <Navigate to="/today" replace /> },
       { path: 'today', element: <TodayPage /> },
+      { path: 'week', element: <WeekPage /> },
       { path: 'timetable', element: <TimetablePage /> },
+      { path: 'lesson/:groupId', element: <LessonPage /> },
       { path: 'groups', element: <GroupsPage /> },
+      { path: 'groups/:id', element: <GroupPage /> },
       { path: 'curriculum', element: <CurriculumPage /> },
       { path: 'curriculum/:key', element: <CurriculumPage /> },
       { path: 'settings', element: <SettingsPage /> },
@@ -62,6 +69,10 @@ export function App() {
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
+
+  if (settings === undefined) return null; // still opening the database
+  // A brand-new device (e.g. another teacher) starts with the setup wizard.
+  if (settings === null) return <SetupWizard />;
 
   return (
     <LanguageProvider lang={lang}>

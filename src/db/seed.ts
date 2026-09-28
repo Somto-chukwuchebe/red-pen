@@ -5,7 +5,7 @@
 import type curriculumJson from '../seed/curriculum.json';
 import type gamesJson from '../seed/games.json';
 import type resourcesJson from '../seed/resources.json';
-import { SEED_GROUPS, SEED_HOLIDAYS, SEED_QUARTERS, SEED_YEAR_START } from '../seed/groups';
+import { SEED_GROUPS, SEED_HOLIDAYS, SEED_QUARTERS, SEED_YEAR_START, type SeedGroup } from '../seed/groups';
 import type {
   Curriculum,
   Game,
@@ -86,7 +86,7 @@ export function libraryRecords(files: Pick<SeedFiles, 'games' | 'resources'>, no
 
 /** Where a group's lesson pointer starts on a fresh install. */
 export function startingLessonId(
-  seedGroup: (typeof SEED_GROUPS)[number],
+  seedGroup: Pick<SeedGroup, 'curriculumKey' | 'startAt'>,
   modules: Pick<Module, 'id' | 'curriculumKey' | 'order' | 'title'>[],
   lessons: Pick<PlannedLesson, 'id' | 'moduleId' | 'order' | 'label'>[],
 ): string | null {
@@ -94,12 +94,13 @@ export function startingLessonId(
     .filter((m) => m.curriculumKey === seedGroup.curriculumKey)
     .sort((a, b) => a.order - b.order);
   const mod =
-    seedGroup.startAt.module === 'module-1'
+    seedGroup.startAt?.module === 'module-1'
       ? (mods.find((m) => /^Module 1\b/.test(m.title)) ?? mods[0])
       : mods[0];
   if (!mod) return null;
   const inModule = lessons.filter((l) => l.moduleId === mod.id).sort((a, b) => a.order - b.order);
-  const wanted = seedGroup.startAt.label ? inModule.find((l) => l.label === seedGroup.startAt.label) : undefined;
+  const label = seedGroup.startAt?.label;
+  const wanted = label ? inModule.find((l) => l.label === label) : undefined;
   return (wanted ?? inModule[0])?.id ?? null;
 }
 
@@ -117,41 +118,88 @@ export function defaultSettings(now = Date.now()): Settings {
   };
 }
 
-/** Fill an empty database. Does nothing if Red Pen has already been set up on this device. */
-export async function ensureSeeded(): Promise<boolean> {
+export interface SetupOptions {
+  subject: string;
+  language: 'en' | 'ru';
+  teacherName?: string;
+  /** Groups to create. Example groups carry a `startAt`; new ones don't. */
+  groups: SeedGroup[];
+  calendar: Pick<Settings, 'yearStart' | 'quarters' | 'holidays'>;
+  /** Load the built-in (English, Spotlight-aligned) curriculum, games and resources. */
+  includeBuiltInCurriculum: boolean;
+}
+
+export const isEnglish = (subject?: string) => !subject || /^(english|английский)/i.test(subject.trim());
+
+/** The example setup: all of the owner's groups, the 2026–27 calendar and the built-in curriculum. */
+export function exampleSetup(): SetupOptions {
+  return {
+    subject: 'English',
+    language: 'en',
+    groups: SEED_GROUPS,
+    calendar: { yearStart: SEED_YEAR_START, quarters: SEED_QUARTERS, holidays: SEED_HOLIDAYS },
+    includeBuiltInCurriculum: true,
+  };
+}
+
+/** First-time setup of this device (from the setup wizard). Does nothing if already set up. */
+export async function setupNewDevice(opts: SetupOptions): Promise<boolean> {
   if (await db.settings.get(SETTINGS_ID)) return false;
   const now = Date.now();
-  const files = await loadSeedFiles();
-  const { curricula, modules, lessons, frameworks } = curriculumRecords(files.curriculum, now);
-  const { games, resources } = libraryRecords(files, now);
-  const groups: Group[] = SEED_GROUPS.map(({ startAt: _s, ...g }, i) => ({
-    ...g,
-    currentPlannedLessonId: startingLessonId(SEED_GROUPS[i], modules, lessons),
-    updatedAt: now,
-  }));
+  const files = opts.includeBuiltInCurriculum ? await loadSeedFiles() : null;
+  const cur = files ? curriculumRecords(files.curriculum, now) : { curricula: [], modules: [], lessons: [], frameworks: [] };
+  const lib = files ? libraryRecords(files, now) : { games: [], resources: [] };
+  const keys = new Set(cur.curricula.map((c) => c.key));
+  const groups: Group[] = opts.groups.map(({ startAt, ...g }, i) => {
+    const curriculumKey = keys.has(g.curriculumKey) ? g.curriculumKey : '';
+    return {
+      ...g,
+      curriculumKey,
+      order: i + 1,
+      currentPlannedLessonId: curriculumKey ? startingLessonId({ curriculumKey, startAt }, cur.modules, cur.lessons) : null,
+      updatedAt: now,
+    };
+  });
+  const startYear = opts.calendar.yearStart.slice(0, 4);
   const version: TimetableVersion = {
     id: DEFAULT_VERSION_ID,
-    name: 'Timetable 2026–27',
-    effectiveFrom: SEED_YEAR_START,
+    name: `Timetable ${startYear}–${String(Number(startYear) + 1).slice(2)}`,
+    effectiveFrom: opts.calendar.yearStart,
     updatedAt: now,
   };
 
   await db.transaction('rw', db.tables, async () => {
     // Check again inside the transaction in case two tabs opened at once.
     if (await db.settings.get(SETTINGS_ID)) return;
-    await db.curricula.bulkPut(curricula);
-    await db.modules.bulkPut(modules);
-    await db.lessons.bulkPut(lessons);
-    await db.frameworks.bulkPut(frameworks);
-    await db.games.bulkPut(games);
-    await db.resources.bulkPut(resources);
+    await db.curricula.bulkPut(cur.curricula);
+    await db.modules.bulkPut(cur.modules);
+    await db.lessons.bulkPut(cur.lessons);
+    await db.frameworks.bulkPut(cur.frameworks);
+    await db.games.bulkPut(lib.games);
+    await db.resources.bulkPut(lib.resources);
     await db.groups.bulkPut(groups);
     await db.timetableVersions.put(version);
-    await db.settings.put(defaultSettings(now));
+    await db.settings.put({
+      ...defaultSettings(now),
+      ...opts.calendar,
+      language: opts.language,
+      subject: opts.subject.trim() || 'English',
+      ...(opts.teacherName?.trim() ? { teacherName: opts.teacherName.trim() } : {}),
+    });
     if (!(await db.local.get('deviceName'))) await db.local.put({ key: 'deviceName', value: guessDeviceName() });
     await db.local.put({ key: 'createdAt', value: now });
   });
   return true;
+}
+
+/** Every device needs a name for its backups (restoring a backup doesn't bring one). */
+export async function ensureDeviceName() {
+  if (!(await db.local.get('deviceName'))) await db.local.put({ key: 'deviceName', value: guessDeviceName() });
+}
+
+/** Set up with the example data (used by tests and as the wizard's default). */
+export function ensureSeeded(): Promise<boolean> {
+  return setupNewDevice(exampleSetup());
 }
 
 /**
@@ -200,8 +248,7 @@ export async function reloadCurriculum() {
     // Fix pointers that now point nowhere.
     for (const g of await db.groups.toArray()) {
       if (g.currentPlannedLessonId && !(await db.lessons.get(g.currentPlannedLessonId))) {
-        const seedGroup = SEED_GROUPS.find((s) => s.curriculumKey === g.curriculumKey);
-        const fallback = seedGroup ? startingLessonId({ ...seedGroup, startAt: { module: 'first' } }, modules, lessons) : null;
+        const fallback = startingLessonId({ curriculumKey: g.curriculumKey, startAt: { module: 'first' } }, modules, lessons);
         await db.groups.update(g.id, { currentPlannedLessonId: fallback, updatedAt: now });
       }
     }

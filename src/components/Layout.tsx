@@ -1,4 +1,4 @@
-import { CalendarDays, Download, House, LibraryBig, Menu, Settings, Share2, Users } from 'lucide-react';
+import { CalendarDays, CalendarRange, Download, House, LibraryBig, Menu, Settings, Share2, Users } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { useT } from '../i18n';
@@ -21,11 +21,12 @@ export function Layout() {
 
   const main: Item[] = [
     { to: '/today', label: t.nav.today, icon: <House size={22} /> },
-    { to: '/timetable', label: t.nav.timetable, icon: <CalendarDays size={22} /> },
+    { to: '/week', label: t.nav.week, icon: <CalendarRange size={22} /> },
     { to: '/groups', label: t.nav.groups, icon: <Users size={22} /> },
     { to: '/curriculum', label: t.nav.curriculum, icon: <LibraryBig size={22} /> },
   ];
   const extra: Item[] = [
+    { to: '/timetable', label: t.nav.timetable, icon: <CalendarDays size={22} /> },
     { to: '/data', label: t.nav.data, icon: <Share2 size={22} /> },
     { to: '/settings', label: t.nav.settings, icon: <Settings size={22} /> },
     { to: '/install', label: t.nav.install, icon: <Download size={22} /> },
