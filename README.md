@@ -18,7 +18,7 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
 3. [Sync, back up and restore your data](#3-sync-back-up-and-restore-your-data)
 4. [Publish it on GitHub Pages](#4-publish-it-on-github-pages)
 5. [Import your curriculum](#5-import-your-curriculum)
-6. [Native iPhone and Android apps with widgets](#6-native-iphone-and-android-apps-with-widgets)
+6. [The number on the app icon (and why there's no widget yet)](#6-the-number-on-the-app-icon-and-why-theres-no-widget-yet)
 7. [For the curious: how it's built](#7-for-the-curious-how-its-built)
 8. [Sharing Red Pen with other teachers](#8-sharing-red-pen-with-other-teachers)
 
@@ -246,9 +246,29 @@ You can also build or change a curriculum by hand: **Curriculum → Edit** or **
 
 ---
 
-## 6. Native iPhone and Android apps with widgets
+## 6. The number on the app icon (and why there's no widget yet)
 
-*Planned for Phase 6.* This section will explain building the Capacitor apps in Xcode and Android Studio, installing them on your phones, and moving your data from the web app into the native app.
+**Settings → Number on the app icon** shows how many lessons you still have to log on the Red Pen icon, like the red number on Mail: all of today's lessons not logged yet, plus any from the past week you missed. It's switched on separately on each device.
+
+- **iPhone and iPad** (iOS 16.4 or later): only in Red Pen opened from the home-screen icon. Turning it on asks to allow notifications, because that's how Apple lets apps show a number. Red Pen never sends notifications. If you refused by mistake: Settings → Notifications → Red Pen.
+- **Mac:** in Red Pen added to the Dock from Safari (asks the same permission), or installed from Chrome or Edge.
+- **Windows:** Red Pen installed from Chrome or Edge.
+- **Android:** not supported by Android browsers.
+
+The number can only change while Red Pen is open (phones don't let web apps update in the background). Open it once in the morning and it shows the whole day. After that it goes down as you log lessons.
+
+### Home-screen widgets: options for later
+
+Web apps can't have widgets on iPhone or Android, so a widget (next lesson, lessons left, lessons to log) needs Red Pen wrapped as a native app with Capacitor. The code is ready for that, but it was put on hold (September 2026):
+
+| | iPhone widget | Android widget |
+|---|---|---|
+| Tools on the Mac | Xcode, about 40–50 GB of free space | Android Studio, about 15–20 GB |
+| Cost | Apple Developer Program, $99 a year (needs a non-Russian card); with a free Apple ID the app stops working every 7 days | Free (install the app file directly); Google Play is $25 once, RuStore is an alternative |
+| Updates | Through TestFlight | Reinstall the app file |
+| Notes | The widget also shows on the Mac desktop (macOS Sonoma or later) | Mostly useful for other teachers |
+
+A native app keeps its own copy of the data, separate from the web app. You'd move your data in once with Sync & backup, then use the app on that phone.
 
 ---
 

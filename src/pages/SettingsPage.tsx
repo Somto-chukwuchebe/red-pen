@@ -1,8 +1,9 @@
 import { RefreshCw, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { allowBadge, badgeSupport, type BadgeSupport } from '../lib/badge';
 import { CurriculumImport } from '../components/CurriculumImport';
 import { CalendarFields, cleanCalendar, type CalendarValue } from '../components/CalendarFields';
 import { useEffect, useState } from 'react';
-import { Banner, Button, Select, Card, PageHeader, Segmented, SectionTitle, TextInput } from '../components/ui';
+import { Banner, Button, Select, Card, PageHeader, Segmented, SectionTitle, TextInput, Toggle } from '../components/ui';
 import { useToast } from '../components/Toast';
 import { useLocal, useSettings } from '../db/hooks';
 import { patch, setLocal } from '../db/repo';
@@ -54,6 +55,8 @@ export function SettingsPage() {
         </Card>
 
         <StorageCard />
+
+        <BadgeCard />
 
         <Card>
           <SectionTitle>{t.settings.year}</SectionTitle>
@@ -183,5 +186,32 @@ function CalendarEditor({ settings, onSave }: { settings: Settings; onSave: (c: 
         </Button>
       </div>
     </div>
+  );
+}
+
+/** The number on the app icon (this device only: each device asks its own permission). */
+function BadgeCard() {
+  const t = useT();
+  const on = useLocal<boolean>('badge') ?? false;
+  const [support, setSupport] = useState<BadgeSupport>(() => badgeSupport());
+
+  async function toggle(next: boolean) {
+    if (!next) return setLocal('badge', false);
+    const result = await allowBadge();
+    setSupport(result);
+    if (result === 'yes') await setLocal('badge', true);
+  }
+
+  const problem = support === 'yes' || support === 'needs-permission' ? null : t.settings.badgeProblem[support];
+  return (
+    <Card>
+      <SectionTitle>{t.settings.badgeTitle}</SectionTitle>
+      <p className="mb-4 text-sm text-ink-soft">{t.settings.badgeHint}</p>
+      {problem ? (
+        <Banner tone="info">{problem}</Banner>
+      ) : (
+        <Toggle label={t.settings.badgeToggle} hint={support === 'needs-permission' && !on ? t.settings.badgePermission : undefined} checked={on && support === 'yes'} onChange={(v) => void toggle(v)} />
+      )}
+    </Card>
   );
 }

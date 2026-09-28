@@ -1,6 +1,7 @@
 import { BookOpen, CalendarDays, CalendarRange, ChartLine, Dices, Download, House, Menu, Presentation, Settings, Share2, Users } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
+import { useAppBadge } from '../db/hooks';
 import { useT } from '../i18n';
 import { Logo } from './Logo';
 import { cx } from './ui';
@@ -14,6 +15,7 @@ interface Item {
 export function Layout() {
   const t = useT();
   const { pathname } = useLocation();
+  useAppBadge();
   // Each page opens at the top.
   useEffect(() => {
     window.scrollTo(0, 0);
