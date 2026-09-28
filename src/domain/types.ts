@@ -171,6 +171,9 @@ export interface Student extends Stamped {
 export interface Participation extends Stamped {
   studentId: ID;
   lessonLogId: ID;
+  /** Overall participation in the lesson's activities: 1 Not engaged … 5 Outstanding. */
+  rating: number | null;
+  /** Times the student spoke (older logs, before ratings). Kept for history. */
   spoke: number;
   volunteered: boolean;
   helpedOthers: boolean;

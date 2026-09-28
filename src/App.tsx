@@ -13,6 +13,7 @@ import { InstallPage } from './pages/InstallPage';
 import { LessonPage } from './pages/LessonPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { PlannerPage } from './pages/PlannerPage';
+import { ProgressPage } from './pages/ProgressPage';
 import { PrintCardPage } from './pages/PrintCardPage';
 import { MorePage } from './pages/MorePage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -36,6 +37,7 @@ const router = createHashRouter([
       { path: 'plan/:lessonId', element: <PlannerPage /> },
       { path: 'print/:lessonId', element: <PrintCardPage /> },
       { path: 'library', element: <LibraryPage /> },
+      { path: 'progress', element: <ProgressPage /> },
       { path: 'groups', element: <GroupsPage /> },
       { path: 'groups/:id', element: <GroupPage /> },
       { path: 'curriculum', element: <CurriculumPage /> },

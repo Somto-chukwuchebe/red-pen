@@ -20,6 +20,17 @@
   --amber-soft: #fbeccb;
   --ok: #2f6d3a;
   --focus: #1f5fbf;
+  /* Participation 1–5: one red ramp, light → dark (text colour checked for 4.5:1). */
+  --rate-1: #fbe3df;
+  --rate-2: #f3bcb2;
+  --rate-3: #e48a7c;
+  --rate-4: #c9493b;
+  --rate-5: #9e241c;
+  --rate-ink-1: #1f2a44;
+  --rate-ink-2: #1f2a44;
+  --rate-ink-3: #1f2a44;
+  --rate-ink-4: #ffffff;
+  --rate-ink-5: #ffffff;
 }
 .dark {
   --paper: #16181d;
@@ -35,6 +46,16 @@
   --amber-soft: #3a2e14;
   --ok: #7cc48a;
   --focus: #7fb0ff;
+  --rate-1: #3a2321;
+  --rate-2: #5e2d28;
+  --rate-3: #8f3d34;
+  --rate-4: #d95a4d;
+  --rate-5: #f07c71;
+  --rate-ink-1: #ece7dc;
+  --rate-ink-2: #ece7dc;
+  --rate-ink-3: #ece7dc;
+  --rate-ink-4: #16181d;
+  --rate-ink-5: #16181d;
 }
 
 @theme inline {

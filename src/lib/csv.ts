@@ -12,7 +12,7 @@ export function toCsv(rows: unknown[][]): string {
   return '﻿' + rows.map((r) => r.map(cell).join(',')).join('\r\n') + '\r\n';
 }
 
-/** One row per student per lesson: date, lesson, status, present, times spoken. */
+/** One row per student per lesson: date, lesson, status, present, participation rating (1–5). */
 export function attendanceRows(
   group: Pick<Group, 'name'>,
   logs: LessonLog[],
@@ -22,7 +22,7 @@ export function attendanceRows(
   modules: Map<string, Pick<Module, 'title'>>,
   headers: string[],
 ): unknown[][] {
-  const spoke = new Map(participation.map((p) => [`${p.lessonLogId}:${p.studentId}`, p.spoke]));
+  const rating = new Map(participation.map((p) => [`${p.lessonLogId}:${p.studentId}`, p.rating]));
   const rows: unknown[][] = [headers];
   for (const log of [...logs].sort((a, b) => a.date.localeCompare(b.date))) {
     const l = log.plannedLessonId ? lessons.get(log.plannedLessonId) : undefined;
@@ -33,7 +33,7 @@ export function attendanceRows(
     }
     for (const s of students) {
       const present = !log.absentStudentIds.includes(s.id) && log.status !== 'cancelled';
-      rows.push([log.date, group.name, lessonName, log.status, s.name, present ? 1 : 0, spoke.get(`${log.id}:${s.id}`) ?? 0, log.whatWorked.join('; '), log.notes]);
+      rows.push([log.date, group.name, lessonName, log.status, s.name, present ? 1 : 0, present ? (rating.get(`${log.id}:${s.id}`) ?? '') : '', log.whatWorked.join('; '), log.notes]);
     }
   }
   return rows;

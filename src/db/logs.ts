@@ -17,8 +17,8 @@ export interface LogDraft {
   whatToChange: string;
   energy: number | null;
   absentStudentIds: ID[];
-  /** How many times each student spoke (0 = didn't). */
-  spoke: Record<ID, number>;
+  /** Participation rating 1–5 for each rated student (unrated students are left out). */
+  ratings: Record<ID, number>;
   gameIds: ID[];
   notes: string;
   /**
@@ -65,18 +65,23 @@ export async function saveLog(draft: LogDraft): Promise<LessonLog> {
     updatedAt: now,
   };
   const absent = new Set(draft.absentStudentIds);
-  const participation: Participation[] = Object.entries(draft.spoke)
-    .filter(([studentId, n]) => n > 0 && !absent.has(studentId))
-    .map(([studentId, n]) => ({
+  // Older logs counted how often students spoke; keep those counts when editing.
+  const previous = new Map((await db.participation.where('lessonLogId').equals(id).toArray()).map((p) => [p.studentId, p]));
+  const studentIds = new Set([...Object.keys(draft.ratings), ...[...previous.values()].filter((p) => p.spoke > 0).map((p) => p.studentId)]);
+  const participation: Participation[] = [...studentIds]
+    .filter((studentId) => !absent.has(studentId))
+    .map((studentId) => ({
       id: `${id}:${studentId}`,
       studentId,
       lessonLogId: id,
-      spoke: n,
+      rating: draft.ratings[studentId] ?? null,
+      spoke: previous.get(studentId)?.spoke ?? 0,
       volunteered: false,
       helpedOthers: false,
-      note: '',
+      note: previous.get(studentId)?.note ?? '',
       updatedAt: now,
-    }));
+    }))
+    .filter((p) => p.rating !== null || p.spoke > 0);
 
   const group = await db.groups.get(draft.groupId);
   let pointer = group?.currentPlannedLessonId ?? null;

@@ -1,10 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Check, Download, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, Download, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { LogSheet, type LogTarget } from '../components/LogSheet';
+import { ClassTrend, ParticipationGrid } from '../components/ParticipationViews';
+import { LowFlag } from '../components/Rating';
+import { TermSummaryDialog } from '../components/TermSummary';
 import { useToast } from '../components/Toast';
-import { BareInput, Button, Card, Dialog, EmptyState, LinkButton, SectionTitle, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
+import { BareInput, Button, Card, Dialog, EmptyState, LinkButton, SectionTitle, Segmented, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
 import { shareOrDownload } from '../db/backup';
 import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
@@ -16,6 +19,7 @@ import { attendanceRows, toCsv } from '../lib/csv';
 import { todayISO } from '../lib/dates';
 import { shortDate } from '../lib/format';
 import { isTouchPhone } from '../lib/platform';
+import { isFlagged, LOW_STREAK, studentHistory } from '../lib/participation';
 import { progressFraction } from '../lib/pointer';
 import { GroupEditor } from './GroupsPage';
 
@@ -26,6 +30,7 @@ export function GroupPage() {
   const settings = useSettings();
   const [editing, setEditing] = useState(false);
   const [logTarget, setLogTarget] = useState<LogTarget | null>(null);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const data = useLiveQuery(async () => {
     const group = await db.groups.get(id);
@@ -35,12 +40,14 @@ export function GroupPage() {
     const students = (await db.students.where('groupId').equals(id).toArray()).sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name));
     const logs = (await db.logs.where('groupId').equals(id).toArray()).sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt - a.updatedAt);
     const ordered = await curriculumOrder(group.curriculumKey);
-    return { group, modules, lessons, students, logs, ordered };
+    const participation = await db.participation.where('lessonLogId').anyOf(logs.map((l) => l.id)).toArray();
+    return { group, modules, lessons, students, logs, ordered, participation };
   }, [id]);
 
   if (data === undefined || !settings) return null;
   if (data === null) return <EmptyState title={t.groupPage.notFound} />;
-  const { group, modules, lessons, students, logs, ordered } = data;
+  const { group, modules, lessons, students, logs, ordered, participation } = data;
+  const flaggedCount = students.filter((s) => s.active && isFlagged(studentHistory(s.id, logs, participation))).length;
   const lessonById = new Map(lessons.map((l) => [l.id, l]));
   const moduleById = new Map(modules.map((m) => [m.id, m]));
   const pointer = group.currentPlannedLessonId ? lessonById.get(group.currentPlannedLessonId) : undefined;
@@ -79,6 +86,9 @@ export function GroupPage() {
           <div className="flex flex-wrap gap-2">
             <Button variant="primary" icon={<Check size={18} />} onClick={() => setLogTarget({ groupId: group.id, date: todayISO() })}>
               {t.groupPage.logLesson}
+            </Button>
+            <Button icon={<FileText size={16} />} onClick={() => setSummaryOpen(true)}>
+              {t.summary.button}
             </Button>
             <Button icon={<Pencil size={16} />} onClick={() => setEditing(true)}>
               {t.common.edit}
@@ -139,6 +149,20 @@ export function GroupPage() {
         {/* Can-do */}
         {pointerModule && <CanDo group={group} moduleId={pointerModule.id} moduleTitle={pointerModule.title} students={students.filter((s) => s.active)} />}
 
+        {/* Participation */}
+        {group.tracksStudents && students.some((s) => s.active) && (
+          <Card className="lg:col-span-2">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <SectionTitle className="!mb-0">{t.log.participation}</SectionTitle>
+              {flaggedCount > 0 && <LowFlag streak={LOW_STREAK} />}
+            </div>
+            <div className="flex flex-col gap-5">
+              <ClassTrend logs={logs} participation={participation} />
+              <ParticipationGrid students={students.filter((s) => s.active)} logs={logs} participation={participation} />
+            </div>
+          </Card>
+        )}
+
         {/* History */}
         <Card className="lg:col-span-2">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -174,6 +198,7 @@ export function GroupPage() {
         </Card>
       </div>
 
+      {summaryOpen && <TermSummaryDialog group={group} onClose={() => setSummaryOpen(false)} />}
       {editing && <GroupEditor group={group} onClose={() => setEditing(false)} onDeleted={() => navigate('/groups')} />}
       <LogSheet target={logTarget} onClose={() => setLogTarget(null)} />
     </>
@@ -283,9 +308,10 @@ function StudentEditor({ student, onClose }: { student: Student; onClose: () => 
 
 const LEVELS: CanDoLevel[] = ['not-yet', 'emerging', 'secure'];
 
-function CanDo({ group, moduleId, moduleTitle }: { group: Group; moduleId: ID; moduleTitle: string; students: Student[] }) {
+function CanDo({ group, moduleId, moduleTitle, students }: { group: Group; moduleId: ID; moduleTitle: string; students: Student[] }) {
   const t = useT();
   const [text, setText] = useState('');
+  const [view, setView] = useState<'group' | 'students'>('group');
   const statements = useLiveQuery(() => db.canDoStatements.where('moduleId').equals(moduleId).sortBy('order'), [moduleId]);
   const marks = useLiveQuery(() => db.canDoMarks.where('groupId').equals(group.id).toArray(), [group.id]);
   const groupMark = useMemo(() => new Map((marks ?? []).filter((m) => !m.studentId).map((m) => [m.statementId, m])), [marks]);
@@ -303,11 +329,63 @@ function CanDo({ group, moduleId, moduleTitle }: { group: Group; moduleId: ID; m
     await save<CanDoMark>('canDoMarks', { id: existing?.id ?? newId('mark'), statementId, groupId: group.id, studentId: null, level });
   }
 
+  // Each student: tap a cell to go not yet → emerging → secure → (blank).
+  async function cycle(statementId: ID, studentId: ID) {
+    const existing = marks!.find((m) => m.statementId === statementId && m.studentId === studentId);
+    const next = !existing ? 'not-yet' : existing.level === 'not-yet' ? 'emerging' : existing.level === 'emerging' ? 'secure' : null;
+    if (!next) await remove('canDoMarks', existing!.id);
+    else await save<CanDoMark>('canDoMarks', { id: existing?.id ?? newId('mark'), statementId, groupId: group.id, studentId, level: next });
+  }
+
   return (
-    <Card>
-      <SectionTitle>{t.groupPage.canDo}</SectionTitle>
+    <Card className={view === 'students' ? 'lg:col-span-2' : ''}>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <SectionTitle className="!mb-0">{t.groupPage.canDo}</SectionTitle>
+        {students.length > 0 && statements.length > 0 && (
+          <Segmented label={t.groupPage.canDo} value={view} onChange={setView} options={[{ value: 'group', label: t.groupPage.canDoGroup }, { value: 'students', label: t.groupPage.canDoStudents }]} />
+        )}
+      </div>
       <p className="mb-3 text-sm text-ink-soft">{moduleTitle}</p>
       {statements.length === 0 && <p className="mb-3 text-ink-soft">{t.groupPage.canDoHint}</p>}
+      {view === 'students' && statements.length > 0 ? (
+        <div className="overflow-x-auto">
+          <p className="mb-2 text-sm text-ink-soft">{t.groupPage.canDoCycleHint}</p>
+          <table className="w-full border-separate border-spacing-0.5 text-sm">
+            <thead>
+              <tr>
+                <th scope="col" className="sticky left-0 bg-card px-2 py-1 text-left font-medium text-ink-soft">{t.common.name}</th>
+                {statements.map((s) => (
+                  <th key={s.id} scope="col" className="min-w-28 px-1 py-1 text-left align-bottom text-xs font-medium text-ink-soft">
+                    {t.groupPage.iCan} {s.text}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((st) => (
+                <tr key={st.id}>
+                  <th scope="row" className="sticky left-0 bg-card px-2 py-1 text-left font-medium whitespace-nowrap">{st.name}</th>
+                  {statements.map((s) => {
+                    const lv = marks.find((m) => m.statementId === s.id && m.studentId === st.id)?.level;
+                    return (
+                      <td key={s.id} className="p-0">
+                        <button
+                          type="button"
+                          onClick={() => cycle(s.id, st.id)}
+                          aria-label={`${st.name}, ${s.text}: ${lv ? t.groupPage.levels[lv] : t.groupPage.notMarked}`}
+                          className={cx('h-9 w-full rounded-md border px-2 text-xs font-medium', lv === 'secure' ? 'border-pen bg-pen text-white dark:text-[#1b0f0e]' : lv === 'emerging' ? 'border-pen/50 bg-pen-soft' : lv === 'not-yet' ? 'border-ink/30 bg-sunk' : 'border-dashed border-line text-ink-soft')}
+                        >
+                          {lv ? t.groupPage.levels[lv] : '—'}
+                        </button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
       <ul className="flex flex-col gap-3">
         {statements.map((s) => {
           const level = groupMark.get(s.id)?.level;
@@ -339,7 +417,8 @@ function CanDo({ group, moduleId, moduleTitle }: { group: Group; moduleId: ID; m
           );
         })}
       </ul>
-      {statements.length < 6 && (
+      )}
+      {statements.length < 6 && view === 'group' && (
         <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); void add(); }}>
           <span className="self-center text-ink-soft">{t.groupPage.iCan}</span>
           <BareInput value={text} onChange={(e) => setText(e.target.value)} placeholder={t.groupPage.canDoPlaceholder} aria-label={t.groupPage.canDoAdd} />

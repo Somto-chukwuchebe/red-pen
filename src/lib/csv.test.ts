@@ -20,13 +20,13 @@ describe('CSV export', () => {
     ];
     const rows = attendanceRows(
       { name: '2a' }, [log], students,
-      [{ id: 'x', studentId: 's1', lessonLogId: 'l1', spoke: 3, volunteered: false, helpedOthers: false, note: '', updatedAt: 0 }],
+      [{ id: 'x', studentId: 's1', lessonLogId: 'l1', rating: 4, spoke: 3, volunteered: false, helpedOthers: false, note: '', updatedAt: 0 }],
       new Map([['p1', { label: 'Week 2 · Lesson A', moduleId: 'm' }]]), new Map([['m', { title: 'Starter' }]]),
       ['date', 'group', 'lesson', 'status', 'student', 'present', 'spoke', 'worked', 'notes'],
     );
     expect(rows.slice(1)).toEqual([
-      ['2026-09-28', '2a', 'Starter · Week 2 · Lesson A', 'taught', 'Masha', 1, 3, 'Game', ''],
-      ['2026-09-28', '2a', 'Starter · Week 2 · Lesson A', 'taught', 'Petya', 0, 0, 'Game', ''],
+      ['2026-09-28', '2a', 'Starter · Week 2 · Lesson A', 'taught', 'Masha', 1, 4, 'Game', ''],
+      ['2026-09-28', '2a', 'Starter · Week 2 · Lesson A', 'taught', 'Petya', 0, '', 'Game', ''],
     ]);
   });
 });

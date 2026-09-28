@@ -30,18 +30,24 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
   - **Start lesson** shows the plan in big type, which works well on the projector: focus, key language, games and lesson stages with minutes. When you're done, tap **Done** or press **D**.
   - **Log** opens the quick log straight away.
 - **The 30-second log:**
-  1. Everyone is present unless you say otherwise.
-  2. Tap a child's name each time they speak (tap again for 2, 3…; the small − takes one off). Switch to **Absent** to mark absences.
+  1. Everyone is present unless you tap ✓ next to a name to mark them absent.
+  2. **Participation** is optional: rate how each child took part in the lesson's activities, from 1 to 5 (1 Not engaged · 2 Reluctant · 3 OK · 4 Active · 5 Outstanding). **Everyone 4** fills the whole class, so you only change the few who stood out. Tap a number again to clear it.
   3. Tap what worked, and optionally the class energy (1–5, or press the number keys) and a note.
   4. Tap **Done** or press **D**.
 
   The group then moves on to its next planned lesson automatically. Cancelled lessons and test-week reviews don't move it on, and you can change where it goes under "Next time".
+
+  **Low participation:** a child rated 1–2 in each of their last 3 or more rated lessons (absences and unrated lessons are skipped) is flagged in amber ⚠ in the log, on the group page and on **Progress**.
 - **Week** shows the whole week: planned, taught, not logged yet (amber) and cancelled. Tap a lesson to log it or edit its log.
 - **Groups → a group** has:
   - the progress bar and "Change the next lesson";
   - students (paste a list of names);
   - the can-do checklist for the current module;
-  - the lesson history, with an **Attendance (CSV)** export for Excel or Google Sheets.
+  - **Participation**: the class average per lesson over time, and a grid of each student's ratings in recent lessons;
+  - **Can-do** for the whole group, or **Each student** (tap a box: Not yet → Emerging → Secure);
+  - the lesson history, with an **Attendance (CSV)** export for Excel or Google Sheets;
+  - **Term summary**: a short report for the term (English or Russian, with or without names) to copy into a message, plus a per-student spreadsheet.
+- **Progress** (sidebar, or **More** on phones) shows every group's coverage against where the plan says it should be by now (from the module months, or the school weeks gone), and every student who needs attention.
 
 ### Planning and the library
 

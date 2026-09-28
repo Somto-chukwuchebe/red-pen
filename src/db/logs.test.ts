@@ -26,7 +26,7 @@ async function draft(extra: Partial<LogDraft> = {}): Promise<LogDraft> {
     whatToChange: '',
     energy: 4,
     absentStudentIds: [],
-    spoke: {},
+    ratings: {},
     gameIds: [],
     notes: '',
     ...extra,
@@ -57,17 +57,24 @@ describe('saving a lesson log', () => {
     expect((await db.logs.get(log.id))!.notes).toBe('edited');
   });
 
-  it('records who spoke, ignoring absent students, and cleans up on edit and delete', async () => {
-    const log = await saveLog(await draft({ spoke: { s1: 2, s2: 1 }, absentStudentIds: ['s2'] }));
-    expect(await db.participation.where('lessonLogId').equals(log.id).toArray()).toMatchObject([{ studentId: 's1', spoke: 2 }]);
-    await saveLog({ ...(await draft()), id: log.id, spoke: {} });
+  it('records participation ratings, ignoring absent students, and cleans up on edit and delete', async () => {
+    const log = await saveLog(await draft({ ratings: { s1: 4, s2: 2 }, absentStudentIds: ['s2'] }));
+    expect(await db.participation.where('lessonLogId').equals(log.id).toArray()).toMatchObject([{ studentId: 's1', rating: 4 }]);
+    await saveLog({ ...(await draft()), id: log.id, ratings: {} });
     expect(await db.participation.count()).toBe(0);
     await deleteLog(log.id);
     expect(await db.logs.count()).toBe(0);
   });
 
+  it('keeps speaking counts from older logs when a log is edited', async () => {
+    const log = await saveLog(await draft());
+    await db.participation.put({ id: `${log.id}:s1`, studentId: 's1', lessonLogId: log.id, rating: null, spoke: 3, volunteered: false, helpedOthers: false, note: '', updatedAt: 1 });
+    await saveLog({ ...(await draft()), id: log.id, ratings: { s1: 5 } });
+    expect(await db.participation.get(`${log.id}:s1`)).toMatchObject({ rating: 5, spoke: 3 });
+  });
+
   it('deleting a group removes its students and logs too', async () => {
-    await saveLog(await draft({ spoke: { s1: 1 } }));
+    await saveLog(await draft({ ratings: { s1: 3 } }));
     await deleteGroup('g-2a');
     expect(await db.groups.get('g-2a')).toBeUndefined();
     expect(await db.students.count()).toBe(0);

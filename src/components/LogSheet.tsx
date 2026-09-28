@@ -1,8 +1,8 @@
 // The 30-second lesson log. Everything defaults to "taught as planned, everyone
-// present", so a normal lesson is: tap who spoke → tap what worked → Done (or press D).
+// present", so a normal lesson is: Everyone 4 → adjust the few who stood out → what worked → Done (D).
 
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Minus, Plus } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { db } from '../db/db';
@@ -10,7 +10,9 @@ import { deleteLog, saveLog, type LogDraft } from '../db/logs';
 import type { ID, ISODate, LogStatus } from '../domain/types';
 import { useT } from '../i18n';
 import { shortDate } from '../lib/format';
+import { LOW_STREAK, lowStreak, studentHistory } from '../lib/participation';
 import { orderedLessons, pointerAfterLog } from '../lib/pointer';
+import { LowFlag, RatingPicker } from './Rating';
 import { useToast } from './Toast';
 import { Button, Dialog, Segmented, cx } from './ui';
 
@@ -46,11 +48,13 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
     const parts = existing ? await db.participation.where('lessonLogId').equals(existing.id).toArray() : [];
     const modules = group.curriculumKey ? await db.modules.where('curriculumKey').equals(group.curriculumKey).sortBy('order') : [];
     const lessons = await db.lessons.where('moduleId').anyOf(modules.map((m) => m.id)).toArray();
-    return { group, existing, students, parts, modules, lessons };
+    // Earlier lessons, to show who has had low participation lately.
+    const history = (await db.logs.where('groupId').equals(group.id).toArray()).filter((l) => l.id !== existing?.id && l.date <= target.date);
+    const historyParts = await db.participation.where('lessonLogId').anyOf(history.map((l) => l.id)).toArray();
+    return { group, existing, students, parts, modules, lessons, history, historyParts };
   }, [target.groupId, target.logId, target.occurrenceKey]);
 
   const [draft, setDraft] = useState<LogDraft | null>(null);
-  const [mode, setMode] = useState<'spoke' | 'absent'>('spoke');
   const [customWorked, setCustomWorked] = useState('');
   const [pointerChoice, setPointerChoice] = useState<string>('auto');
   const saving = useRef(false);
@@ -72,7 +76,7 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
             whatToChange: existing.whatToChange,
             energy: existing.energy,
             absentStudentIds: existing.absentStudentIds,
-            spoke: Object.fromEntries(parts.map((p) => [p.studentId, p.spoke])),
+            ratings: Object.fromEntries(parts.filter((p) => p.rating != null).map((p) => [p.studentId, p.rating as number])),
             gameIds: existing.gameIds,
             notes: existing.notes,
           }
@@ -86,7 +90,7 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
             whatToChange: '',
             energy: null,
             absentStudentIds: [],
-            spoke: {},
+            ratings: {},
             gameIds: [],
             notes: '',
           },
@@ -94,6 +98,7 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
   }, [data, draft, target.date, target.occurrenceKey]);
 
   const ordered = useMemo(() => (data ? orderedLessons(data.modules, data.lessons) : []), [data]);
+  const streaks = useMemo(() => new Map((data?.students ?? []).map((s) => [s.id, lowStreak(studentHistory(s.id, data!.history, data!.historyParts))])), [data]);
   const lessonById = useMemo(() => new Map(data?.lessons.map((l) => [l.id, l]) ?? []), [data]);
   const moduleById = useMemo(() => new Map(data?.modules.map((m) => [m.id, m]) ?? []), [data]);
   const plannedGames = useLiveQuery(async () => {
@@ -222,51 +227,58 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
             </div>
           </section>
 
-          {/* Who spoke / who was absent */}
+          {/* Participation and attendance */}
           {draft.status !== 'cancelled' && (
             <section>
               {data.group.tracksStudents && data.students.length > 0 ? (
                 <>
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                     <h3 className="font-semibold">
-                      {mode === 'spoke' ? t.log.whoSpoke : t.log.whoAbsent}{' '}
-                      <span className="font-normal text-ink-soft">· {t.log.present(presentCount, data.students.length)}</span>
+                      {t.log.participation} <span className="font-normal text-ink-soft">· {t.log.present(presentCount, data.students.length)}</span>
                     </h3>
-                    <Segmented label={t.log.mode} value={mode} onChange={setMode} options={[{ value: 'spoke', label: t.log.modeSpoke }, { value: 'absent', label: t.log.modeAbsent }]} />
+                    <div className="flex gap-1">
+                      <Button size="sm" onClick={() => update((d) => ({ ratings: Object.fromEntries(data.students.filter((s) => !d.absentStudentIds.includes(s.id)).map((s) => [s.id, d.ratings[s.id] ?? 4])) }))}>
+                        {t.log.everyone(4)}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => set({ ratings: {} })}>
+                        {t.log.clearRatings}
+                      </Button>
+                    </div>
                   </div>
-                  <p className="mb-2 text-sm text-ink-soft">{mode === 'spoke' ? t.log.spokeHint : t.log.absentHint}</p>
-                  <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                  <p className="mb-2 text-sm text-ink-soft">{t.log.ratingHint}</p>
+                  <ul className="flex flex-col divide-y divide-line rounded-xl border border-line">
                     {data.students.map((s) => {
                       const absent = draft.absentStudentIds.includes(s.id);
-                      const n = draft.spoke[s.id] ?? 0;
+                      const streak = streaks.get(s.id) ?? 0;
                       return (
-                        <li key={s.id} className="relative">
+                        <li key={s.id} className="flex flex-wrap items-center gap-2 px-2 py-1.5 sm:flex-nowrap">
                           <button
                             type="button"
-                            aria-pressed={mode === 'absent' ? absent : n > 0}
-                            onClick={() =>
-                              mode === 'absent'
-                                ? update((d) => ({ absentStudentIds: toggle(d.absentStudentIds, s.id) }))
-                                : update((d) => (d.absentStudentIds.includes(s.id) ? {} : { spoke: { ...d.spoke, [s.id]: (d.spoke[s.id] ?? 0) + 1 } }))
-                            }
-                            className={cx(
-                              'flex min-h-12 w-full items-center gap-2 rounded-xl border px-3 text-left font-medium transition-colors',
-                              absent ? 'border-dashed border-line text-ink-soft line-through' : n > 0 ? 'border-pen bg-pen-soft' : 'border-line bg-paper',
-                            )}
+                            aria-pressed={absent}
+                            aria-label={`${s.name}: ${absent ? t.log.markPresent : t.log.markAbsent}`}
+                            title={absent ? t.log.markPresent : t.log.markAbsent}
+                            onClick={() => update((d) => ({ absentStudentIds: toggle(d.absentStudentIds, s.id) }))}
+                            className={cx('grid h-10 w-10 shrink-0 place-items-center rounded-lg border text-sm', absent ? 'border-ink/40 bg-sunk font-semibold text-ink' : 'border-line text-ink-soft')}
                           >
-                            <span className="min-w-0 flex-1 truncate">{s.name}</span>
-                            {n > 0 && !absent && <span className="grid h-7 min-w-7 place-items-center rounded-full bg-pen px-1.5 text-sm font-bold text-white dark:text-[#1b0f0e]">{n === 1 ? '✓' : n}</span>}
+                            {absent ? t.log.absentShort : <Check size={16} aria-hidden />}
                           </button>
-                          {n > 0 && !absent && mode === 'spoke' && (
-                            <button
-                              type="button"
-                              aria-label={`${t.log.less} ${s.name}`}
-                              onClick={() => update((d) => ({ spoke: { ...d.spoke, [s.id]: Math.max(0, (d.spoke[s.id] ?? 0) - 1) } }))}
-                              className="absolute -top-2 -left-2 grid h-7 w-7 place-items-center rounded-full border border-line bg-card text-ink-soft shadow-sm"
-                            >
-                              <Minus size={14} />
-                            </button>
-                          )}
+                          <span className={cx('flex min-w-0 flex-1 items-center gap-2 font-medium', absent && 'text-ink-soft line-through')}>
+                            <span className="truncate">{s.name}</span>
+                            {streak >= LOW_STREAK && !absent && <LowFlag streak={streak} compact />}
+                          </span>
+                          <RatingPicker
+                            label={`${t.log.participation}: ${s.name}`}
+                            value={absent ? null : (draft.ratings[s.id] ?? null)}
+                            disabled={absent}
+                            onChange={(v) =>
+                              update((d) => {
+                                const ratings = { ...d.ratings };
+                                if (v === null) delete ratings[s.id];
+                                else ratings[s.id] = v;
+                                return { ratings };
+                              })
+                            }
+                          />
                         </li>
                       );
                     })}
