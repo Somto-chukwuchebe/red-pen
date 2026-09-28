@@ -71,14 +71,14 @@ export async function importCurriculum(parsed: ParseResult, opts: { includeLibra
     await db.lessons.bulkPut(lessons);
     await db.frameworks.bulkPut(frameworks);
 
-    // Library: add new items, refresh imported text, keep your own tags, files and edits to custom items.
+    // Library: add new items and refresh imported text; levels, tags and files you've set in the app are kept.
     for (const g of games) {
       const old = await db.games.get(g.id);
-      await db.games.put(old ? { ...old, name: g.name, levels: g.levels, levelTags: g.levelTags, howItWorks: g.howItWorks, prep: g.prep, updatedAt: now } : g);
+      await db.games.put(old ? { ...old, name: g.name, howItWorks: g.howItWorks, prep: g.prep, updatedAt: now } : g);
     }
     for (const r of resources) {
       const old = await db.resources.get(r.id);
-      await db.resources.put(old ? { ...old, name: r.name, useFor: r.useFor, levels: r.levels, levelTags: r.levelTags, link: r.link, updatedAt: now } : r);
+      await db.resources.put(old ? { ...old, name: r.name, useFor: r.useFor, link: r.link, updatedAt: now } : r);
     }
 
     // Remove imported modules/lessons of these curricula that are no longer in the document.

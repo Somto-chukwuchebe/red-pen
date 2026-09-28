@@ -6,6 +6,7 @@
 // time Red Pen opens, so existing data is kept.
 
 import Dexie, { type Table } from 'dexie';
+import { upgradeLibraryLevels } from '../import/text';
 import type {
   CanDoMark,
   CanDoStatement,
@@ -75,6 +76,24 @@ export class RedPenDB extends Dexie {
       tombstones: 'id, table',
       local: 'key',
     });
+
+    // v2 (Phase 3.1): the library covers kindergarten and grades 1–11.
+    // Imported games/resources written for grades 2–8 are widened ("5–8" → "5–11",
+    // "2–4" → "1–4"), and every item's level tags now include grade 1 where its range does.
+    this.version(2)
+      .stores({})
+      .upgrade(async (tx) => {
+        const now = Date.now();
+        for (const name of ['games', 'resources'] as const) {
+          await tx
+            .table(name)
+            .toCollection()
+            .modify((item: { levels?: string; levelTags?: string[]; custom?: boolean; updatedAt: number }) => {
+              const change = upgradeLibraryLevels(item);
+              if (change) Object.assign(item, change, { updatedAt: now });
+            });
+        }
+      });
   }
 }
 

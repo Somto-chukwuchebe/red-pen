@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { SAMPLE_CURRICULUM_HTML as sample } from '../test/fixtures';
 import { gameAliases, parseCurriculumHtml, parseLevels, parseMonths } from './parseCurriculum';
+import { widenLevels } from './text';
 
+
+describe('widening level ranges to KG–11', () => {
+  it('extends ranges that end at 8 to 11 and ranges that start at 2 to 1', () => {
+    expect(['5–8', '2–4', '2–8', 'KG–8', '7–8', 'KG–2', 'KG', '4–6', '3–5', ''].map(widenLevels)).toEqual(['5–11', '1–4', '1–11', 'KG–11', '7–11', 'KG–2', 'KG', '4–6', '3–5', '']);
+  });
+});
 
 describe('curriculum import', () => {
   const r = parseCurriculumHtml(sample);
@@ -12,7 +19,9 @@ describe('curriculum import', () => {
     expect(parseMonths('May')).toEqual([5]);
     expect(parseMonths('Сентябрь–Октябрь')).toEqual([9, 10]);
     expect(parseMonths('someday')).toEqual([]);
-    expect(parseLevels('KG–4')).toEqual(['KG', '2', '3', '4']);
+    expect(parseLevels('KG–4')).toEqual(['KG', '1', '2', '3', '4']);
+    expect(parseLevels('9–11')).toEqual(['9', '10', '11']);
+    expect(parseLevels('1')).toEqual(['1']);
     expect(parseLevels('5–8')).toEqual(['5', '6', '7', '8']);
     expect(parseLevels('KG')).toEqual(['KG']);
   });

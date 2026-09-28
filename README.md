@@ -51,7 +51,7 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
   - **Activity ideas** are made on the device from the lesson's topic and key language, using your own library first. Games played with this group recently are marked and suggested less. Tap **Add** to put an idea into a stage; **More ideas** gives a fresh set.
   - **Lesson card** prints a one-page plan, or saves it as a PDF.
 - **Parallel groups** (e.g. 2a and 2b) share a curriculum, so they share each lesson's plan. In the planner, **Teach this next** gives another group the same lesson next; log each group separately.
-- **Library** (sidebar, or **More** on phones) holds your games and resources. Search and filter them by level, skill, energy, prep time and projector. Choose a group to see what you've played with it, least recent first. Add, edit or delete anything, and attach a link or a file (stored on the device and included in backups). New teachers can add a starter set of 22 classic games, written for Red Pen, and edit them freely.
+- **Library** (sidebar, or **More** on phones) holds your games and resources. Levels run from kindergarten through grades 1–11 (write ranges like `KG–4`, `5–11` or `3`). Search and filter by level, skill, energy, prep time and projector. Choose a group to see what you've played with it, least recent first. Add, edit or delete anything, and attach a link or a file (stored on the device and included in backups). New teachers can add a starter set of 22 classic games, written for Red Pen, and edit them freely.
 - **Curriculum → Edit** lets you add, edit, reorder and delete modules and lessons, or create a new curriculum from scratch.
 
 ---
@@ -258,6 +258,9 @@ The model follows the brief, with these changes:
 - **Attendance stores only absences**, because everyone is present by default.
 
 ### Database changes (migrations)
+
+- **v2:** the library covers kindergarten to grade 11. Imported games and resources written for grades 2–8 were widened once ("5–8" → "5–11", "2–4" → "1–4"). Items you created yourself keep the range you chose, and backups made before v2 get the same widening when restored. Re-importing a document keeps the levels already in your library, but a fresh import on a new device uses the document's ranges. To keep KG–11 there too, restore a backup, or update the Levels column in your document.
+
 
 `src/db/db.ts` defines the schema as `db.version(1)`. To change it later, add `db.version(2).stores({...}).upgrade(...)` below; existing data on every device is upgraded automatically the next time it opens.
 

@@ -10,6 +10,7 @@
 
 import { APP_ID } from '../config';
 import type { Stamped, StoredFile, Tombstone } from '../domain/types';
+import { upgradeLibraryLevels } from '../import/text';
 import { db, SYNCED_TABLES, type SyncedTable } from './db';
 import { getLocal, setLocal } from './repo';
 
@@ -183,7 +184,14 @@ export interface ImportPreview {
 }
 
 function incomingRows(file: BackupFile, table: SyncedTable): Stamped[] {
-  const rows = (file.tables[table] ?? []) as Stamped[];
+  let rows = (file.tables[table] ?? []) as Stamped[];
+  // Backups from before database v2 get the same KG–11 library upgrade as this device did.
+  if (file.schemaVersion < 2 && (table === 'games' || table === 'resources')) {
+    rows = rows.map((r) => {
+      const change = upgradeLibraryLevels(r as unknown as { levels?: string; levelTags?: string[]; custom?: boolean });
+      return change ? ({ ...r, ...change } as Stamped) : r;
+    });
+  }
   if (table !== 'files') return rows;
   return (rows as unknown as SerialisedFile[]).map(({ data, ...f }) => ({ ...f, blob: base64ToBlob(data, f.type) }) as StoredFile);
 }

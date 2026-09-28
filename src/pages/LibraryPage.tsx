@@ -9,14 +9,14 @@ import { useGroups, useSettings } from '../db/hooks';
 import { newId, remove, save, touchLocal } from '../db/repo';
 import type { Game, Resource, StoredFile } from '../domain/types';
 import { useT } from '../i18n';
-import { parseLevels } from '../import/text';
+import { ALL_LEVELS, parseLevels } from '../import/text';
 import { dayMonth } from '../lib/format';
 import { gameUsage } from '../lib/usage';
 import { STARTER_COUNT, starterGames } from '../seed/starterGames';
 
 type Tab = 'games' | 'resources';
 export const SKILLS = ['speaking', 'listening', 'vocabulary', 'grammar', 'reading', 'writing', 'movement', 'review'] as const;
-const LEVELS = ['KG', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
+const LEVELS = ALL_LEVELS;
 
 export function LibraryPage() {
   const t = useT();
