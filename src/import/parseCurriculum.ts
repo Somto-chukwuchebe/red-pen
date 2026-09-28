@@ -5,6 +5,9 @@
 // rather than guessed at.
 
 import { parse, type HTMLElement } from 'node-html-parser';
+import { parseLevels, parseMonths } from './text';
+
+export { parseLevels, parseMonths };
 
 export interface SeedCurriculum {
   key: string;
@@ -76,8 +79,6 @@ export interface ParseResult {
   notes: string[];
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DASH = /\s*[–—-]\s*/;
 
 export function slug(s: string): string {
   return s
@@ -100,34 +101,7 @@ const clean = (s: string) =>
 const text = (el: HTMLElement) => clean(el.text);
 const isEmptyCell = (s: string) => s === '' || /^[–—-]$/.test(s);
 
-/** "Sep–Oct" → [9, 10]; "Nov–Dec" → [11, 12]; "Mar–Apr" → [3, 4]. School-year order. */
-export function parseMonths(s: string): number[] {
-  const parts = s.split(DASH).map((p) => MONTHS.indexOf(p.trim().slice(0, 3)) + 1);
-  if (parts.some((n) => n === 0)) return [];
-  if (parts.length === 1) return parts;
-  const [a, b] = parts;
-  const out: number[] = [];
-  for (let m = a; ; m = (m % 12) + 1) {
-    out.push(m);
-    if (m === b || out.length > 12) break;
-  }
-  return out;
-}
 
-/** "KG–4" → ["KG","2","3","4"]; "5–8" → ["5","6","7","8"]; "KG" → ["KG"]. */
-export function parseLevels(s: string): string[] {
-  const parts = s.split(DASH).map((p) => p.trim());
-  const toNum = (p: string) => (/^KG$/i.test(p) ? 1 : Number(p));
-  if (parts.length === 1) return [/^KG$/i.test(parts[0]) ? 'KG' : parts[0]];
-  const [a, b] = parts.map(toNum);
-  if (Number.isNaN(a) || Number.isNaN(b)) return parts;
-  const out: string[] = [];
-  for (let n = a; n <= b; n++) {
-    if (n === 1) out.push('KG');
-    else out.push(String(n));
-  }
-  return out;
-}
 
 function rows(table: HTMLElement): string[][] {
   return table.querySelectorAll('tr').map((tr) => tr.querySelectorAll('td,th').map(text));

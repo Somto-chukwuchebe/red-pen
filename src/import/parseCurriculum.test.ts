@@ -10,6 +10,8 @@ describe('curriculum import', () => {
     expect(parseMonths('Sep–Oct')).toEqual([9, 10]);
     expect(parseMonths('Nov–Jan')).toEqual([11, 12, 1]);
     expect(parseMonths('May')).toEqual([5]);
+    expect(parseMonths('Сентябрь–Октябрь')).toEqual([9, 10]);
+    expect(parseMonths('someday')).toEqual([]);
     expect(parseLevels('KG–4')).toEqual(['KG', '2', '3', '4']);
     expect(parseLevels('5–8')).toEqual(['5', '6', '7', '8']);
     expect(parseLevels('KG')).toEqual(['KG']);

@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarRange, Download, House, LibraryBig, Menu, Settings, Share2, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarRange, Dices, Download, House, Menu, Settings, Share2, Users } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { useT } from '../i18n';
@@ -23,15 +23,16 @@ export function Layout() {
     { to: '/today', label: t.nav.today, icon: <House size={22} /> },
     { to: '/week', label: t.nav.week, icon: <CalendarRange size={22} /> },
     { to: '/groups', label: t.nav.groups, icon: <Users size={22} /> },
-    { to: '/curriculum', label: t.nav.curriculum, icon: <LibraryBig size={22} /> },
+    { to: '/curriculum', label: t.nav.curriculum, icon: <BookOpen size={22} /> },
   ];
+  const library: Item = { to: '/library', label: t.nav.library, icon: <Dices size={22} /> };
   const extra: Item[] = [
     { to: '/timetable', label: t.nav.timetable, icon: <CalendarDays size={22} /> },
     { to: '/data', label: t.nav.data, icon: <Share2 size={22} /> },
     { to: '/settings', label: t.nav.settings, icon: <Settings size={22} /> },
     { to: '/install', label: t.nav.install, icon: <Download size={22} /> },
   ];
-  const moreActive = ['/more', ...extra.map((e) => e.to)].some((p) => pathname.startsWith(p));
+  const moreActive = ['/more', '/library', ...extra.map((e) => e.to)].some((p) => pathname.startsWith(p));
 
   return (
     <div className="min-h-dvh md:flex">
@@ -46,7 +47,7 @@ export function Layout() {
           <Logo size={34} />
           <span className="font-serif text-2xl font-semibold">{t.appName}</span>
         </div>
-        {main.map((i) => (
+        {[...main, library].map((i) => (
           <SideLink key={i.to} {...i} />
         ))}
         <div className="my-3 border-t border-line" />

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { LogSheet, type LogTarget } from '../components/LogSheet';
 import { useToast } from '../components/Toast';
-import { BareInput, Button, Card, Dialog, EmptyState, SectionTitle, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
+import { BareInput, Button, Card, Dialog, EmptyState, LinkButton, SectionTitle, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
 import { shareOrDownload } from '../db/backup';
 import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
@@ -102,7 +102,14 @@ export function GroupPage() {
                 </p>
                 <span className="text-sm text-ink-soft">{t.groupPage.covered(pct)}</span>
               </div>
-              {pointer && <p className="mb-3 text-ink-soft">{pointer.focus}</p>}
+              {pointer && (
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-ink-soft">{pointer.focus}</p>
+                  <LinkButton to={`/plan/${pointer.id}?group=${group.id}`} size="sm">
+                    <Pencil size={14} aria-hidden /> {t.planner.planNext}
+                  </LinkButton>
+                </div>
+              )}
               <div className="h-3 overflow-hidden rounded-full bg-sunk" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={t.groupPage.progress}>
                 <div className="h-full rounded-full bg-pen" style={{ width: `${pct}%` }} />
               </div>

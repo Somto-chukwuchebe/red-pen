@@ -11,6 +11,9 @@ import { GroupPage } from './pages/GroupPage';
 import { GroupsPage } from './pages/GroupsPage';
 import { InstallPage } from './pages/InstallPage';
 import { LessonPage } from './pages/LessonPage';
+import { LibraryPage } from './pages/LibraryPage';
+import { PlannerPage } from './pages/PlannerPage';
+import { PrintCardPage } from './pages/PrintCardPage';
 import { MorePage } from './pages/MorePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { SetupWizard } from './pages/SetupWizard';
@@ -30,6 +33,9 @@ const router = createHashRouter([
       { path: 'week', element: <WeekPage /> },
       { path: 'timetable', element: <TimetablePage /> },
       { path: 'lesson/:groupId', element: <LessonPage /> },
+      { path: 'plan/:lessonId', element: <PlannerPage /> },
+      { path: 'print/:lessonId', element: <PrintCardPage /> },
+      { path: 'library', element: <LibraryPage /> },
       { path: 'groups', element: <GroupsPage /> },
       { path: 'groups/:id', element: <GroupPage /> },
       { path: 'curriculum', element: <CurriculumPage /> },

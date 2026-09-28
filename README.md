@@ -1,6 +1,6 @@
 # Red Pen
 
-A teaching workspace: today's lessons, the year's curriculum, the timetable, groups, a 30-second lesson log, and (coming next) lesson planning, progress and classroom tools. Built for English speaking clubs, and usable by any teacher.
+A teaching workspace: today's lessons, the year's curriculum, the timetable, groups, a 30-second lesson log, a lesson planner with activity ideas, and a games and resources library. Progress tracking and classroom projector tools come next. Built for English speaking clubs, and usable by any teacher.
 
 - **Works offline.** Once opened, everything is cached on the device.
 - **Private.** No accounts, no server. Children's names and notes never leave your devices.
@@ -42,6 +42,17 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
   - students (paste a list of names);
   - the can-do checklist for the current module;
   - the lesson history, with an **Attendance (CSV)** export for Excel or Google Sheets.
+
+### Planning and the library
+
+- **Plan a lesson.** Use **Plan this lesson** (on a lesson in Curriculum), **Plan the next lesson** (on a group's page) or **Plan this lesson** on the Start lesson screen.
+  - Start from your lesson framework or a blank plan. Each stage has a name, minutes and notes.
+  - The total must match the lesson length. Red Pen warns in amber if it doesn't, and **Fit to N min** rescales the stages.
+  - **Activity ideas** are made on the device from the lesson's topic and key language, using your own library first. Games played with this group recently are marked and suggested less. Tap **Add** to put an idea into a stage; **More ideas** gives a fresh set.
+  - **Lesson card** prints a one-page plan, or saves it as a PDF.
+- **Parallel groups** (e.g. 2a and 2b) share a curriculum, so they share each lesson's plan. In the planner, **Teach this next** gives another group the same lesson next; log each group separately.
+- **Library** (sidebar, or **More** on phones) holds your games and resources. Search and filter them by level, skill, energy, prep time and projector. Choose a group to see what you've played with it, least recent first. Add, edit or delete anything, and attach a link or a file (stored on the device and included in backups). New teachers can add a starter set of 22 classic games, written for Red Pen, and edit them freely.
+- **Curriculum → Edit** lets you add, edit, reorder and delete modules and lessons, or create a new curriculum from scratch.
 
 ---
 
@@ -186,7 +197,7 @@ What the importer expects (see `src/import/parseCurriculum.ts`):
 - make headings bigger than body text;
 - always check the preview (**Show every lesson found**) before importing.
 
-Building a curriculum by hand comes with the lesson planner (Phase 3).
+You can also build or change a curriculum by hand: **Curriculum → Edit** or **New curriculum**.
 
 ---
 
@@ -221,7 +232,8 @@ src/
   config.ts              app name and brand colours
   domain/types.ts        the data model
   db/                    database schema, saving/deleting, first-run setup, backups
-  lib/                   pure logic: calendar, schedule, timetable checks, platform detection
+  lib/                   pure logic: calendar, schedule, timetable checks, lesson pointer, stages,
+                         activity ideas (lib/ideas), platform detection
   i18n/en.ts, ru.ts      every piece of text in English and Russian
   pages/                 the screens
   components/            shared building blocks
@@ -261,6 +273,6 @@ Send them the address: `https://somto-chukwuchebe.github.io/red-pen/`.
   - **adds their own groups** (name, lessons per week, lesson length); or
   - **restores a backup** from another device.
   Then they set their school year: week 1, terms (quarters or trimesters) and holidays.
-- **Curriculum:** there's no built-in curriculum. Each teacher imports their own from a Word document or PDF (section 5); building one by hand comes with the lesson planner. The same goes for the games and resources library: each teacher's is their own.
+- **Curriculum:** there's no built-in curriculum. Each teacher imports their own from a Word document or PDF (section 5), or builds one by hand in **Curriculum**. The same goes for the games and resources library: each teacher's is their own.
 - **Everything is customisable afterwards:** groups can be added, edited, archived or deleted, and name, subject, calendar and language are in **Settings**.
 - Your own devices never see the wizard; it only appears on a device with no Red Pen data yet.

@@ -95,9 +95,20 @@ h3 {
   padding-right: env(safe-area-inset-right);
 }
 
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
   .no-print {
     display: none !important;
+  }
+  #main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  .print-card {
+    font-size: 11pt;
   }
   html,
   body {

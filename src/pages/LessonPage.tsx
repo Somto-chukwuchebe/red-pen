@@ -1,9 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Check, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Check, ExternalLink, Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { LogSheet, type LogTarget } from '../components/LogSheet';
-import { Button, Card, EmptyState } from '../components/ui';
+import { Button, Card, EmptyState, LinkButton } from '../components/ui';
 import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
 import { isEnglish } from '../db/seed';
@@ -69,6 +69,11 @@ export function LessonPage() {
           {longDate(t.locale, date)}
           {start && ` · ${start}`}
         </span>
+        {lesson && (
+          <LinkButton to={`/plan/${lesson.id}?group=${group.id}`} size="sm" className="ml-auto">
+            <Pencil size={16} aria-hidden /> {t.planner.planIt}
+          </LinkButton>
+        )}
       </div>
 
       <header className="relative overflow-hidden rounded-2xl border border-line bg-card p-5 pl-7 sm:p-8 sm:pl-10">
