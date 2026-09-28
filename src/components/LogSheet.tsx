@@ -2,7 +2,7 @@
 // present", so a normal lesson is: Everyone 4 → adjust the few who stood out → what worked → Done (D).
 
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus, Shuffle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { db } from '../db/db';
@@ -14,6 +14,8 @@ import { lowStreak, studentHistory } from '../lib/participation';
 import { useFlagRule } from '../db/hooks';
 import { orderedLessons, pointerAfterLog } from '../lib/pointer';
 import { LowFlag, RatingPicker } from './Rating';
+import { readStored } from './ToolFrame';
+import { turnsOn, type Turns } from '../lib/tools';
 import { useToast } from './Toast';
 import { Button, Dialog, Segmented, cx } from './ui';
 
@@ -146,6 +148,8 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
   const set = (p: Partial<LogDraft>) => setDraft((d) => (d ? { ...d, ...p } : d));
   // Taps can come faster than re-renders, so these build on the latest draft.
   const update = (fn: (d: LogDraft) => Partial<LogDraft>) => setDraft((d) => (d ? { ...d, ...fn(d) } : d));
+  // Who the random picker chose in this lesson's day (kept on this device only).
+  const turns = useMemo(() => turnsOn(readStored<Record<string, Turns>>('turns', {})[target.groupId], target.date), [target.groupId, target.date]);
   const lessonLabel = (id: ID | null) => {
     const l = id ? lessonById.get(id) : undefined;
     return l ? `${moduleById.get(l.moduleId)?.title ?? ''} · ${l.label}` : t.log.noLesson;
@@ -264,9 +268,16 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
                           >
                             {absent ? t.log.absentShort : <Check size={16} aria-hidden />}
                           </button>
-                          <span className={cx('flex min-w-0 flex-1 items-center gap-2 font-medium', absent && 'text-ink-soft line-through')}>
+                          <span className={cx('flex min-w-[7.5rem] flex-1 items-center gap-2 font-medium', absent && 'text-ink-soft line-through')}>
                             <span className="truncate">{s.name}</span>
                             {streak >= rule.streak && !absent && <LowFlag streak={streak} compact />}
+                            {!!turns[s.id] && (
+                              <span className="inline-flex shrink-0 items-center gap-0.5 text-xs text-ink-soft" title={t.log.pickedToday(turns[s.id])}>
+                                <Shuffle size={12} aria-hidden />
+                                <span className="sr-only">{t.log.pickedToday(turns[s.id])}</span>
+                                <span aria-hidden>×{turns[s.id]}</span>
+                              </span>
+                            )}
                           </span>
                           <RatingPicker
                             label={`${t.log.participation}: ${s.name}`}

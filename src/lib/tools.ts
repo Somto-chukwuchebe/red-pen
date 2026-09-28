@@ -89,3 +89,48 @@ export function stageClock(minutes: number[], index: number, secondsInStage: num
   const later = minutes.slice(i + 1).reduce((s, m) => s + m * 60, 0);
   return { index: i, remaining: stageSeconds - secondsInStage, lessonRemaining: stageSeconds - secondsInStage + later };
 }
+
+// ─── Turns: who the random picker chose today (shown in the lesson log) ──
+
+export interface Turns {
+  date: string;
+  /** Student id → times picked that day. */
+  counts: Record<string, number>;
+}
+
+/** Count one more turn for `id`; a new day starts a fresh count. */
+export function addTurn(turns: Turns | undefined, id: string, today: string): Turns {
+  const counts = turns?.date === today ? turns.counts : {};
+  return { date: today, counts: { ...counts, [id]: (counts[id] ?? 0) + 1 } };
+}
+
+/** Today's turns for a lesson on `date` (nothing if they're from another day). */
+export const turnsOn = (turns: Turns | undefined, date: string): Record<string, number> => (turns?.date === date ? turns.counts : {});
+
+// ─── Team maker ──────────────────────────────────────────────────────────
+
+/** Shuffle and deal into `count` teams, so team sizes never differ by more than one. */
+export function makeTeams<T>(items: T[], count: number, rng: Rng = Math.random): T[][] {
+  const deck = [...items];
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  const teams: T[][] = Array.from({ length: Math.max(1, count) }, () => []);
+  // Start dealing at a random team, so the extra child doesn't always land in team 1.
+  const offset = Math.floor(rng() * teams.length);
+  deck.forEach((x, i) => teams[(i + offset) % teams.length].push(x));
+  return teams;
+}
+
+// ─── Noise meter ─────────────────────────────────────────────────────────
+
+/**
+ * Turn the loudness of a slice of microphone sound (RMS, 0–1) into a 0–100 level.
+ * −60 dB (a quiet room) is 0 and 0 dB (the loudest the mic can take) is 100.
+ */
+export function noiseLevel(rms: number): number {
+  if (!(rms > 0)) return 0;
+  const db = 20 * Math.log10(rms);
+  return Math.round(Math.min(100, Math.max(0, ((db + 60) / 60) * 100)));
+}

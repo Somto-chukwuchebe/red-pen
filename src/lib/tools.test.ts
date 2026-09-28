@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { draw, formatClock, newBag, rollDice, spinTo, stageClock, wheelIndex, type Bag } from './tools';
+import { addTurn, draw, formatClock, makeTeams, newBag, noiseLevel, rollDice, spinTo, stageClock, turnsOn, wheelIndex, type Bag } from './tools';
 
 /** A repeatable pseudo-random sequence for tests. */
 const seq = (seed = 1) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
@@ -76,5 +76,43 @@ describe('lesson stages timer', () => {
     expect(stageClock(minutes, 0, 0)).toEqual({ index: 0, remaining: 300, lessonRemaining: 2400 });
     expect(stageClock(minutes, 1, 60)).toEqual({ index: 1, remaining: 1440, lessonRemaining: 2040 });
     expect(stageClock(minutes, 2, 660)).toMatchObject({ remaining: -60, lessonRemaining: -60 });
+  });
+});
+
+describe('turns from the picker', () => {
+  it('counts turns per day and starts again the next day', () => {
+    let turns = addTurn(undefined, 'a', '2026-09-28');
+    turns = addTurn(turns, 'a', '2026-09-28');
+    turns = addTurn(turns, 'b', '2026-09-28');
+    expect(turnsOn(turns, '2026-09-28')).toEqual({ a: 2, b: 1 });
+    expect(turnsOn(turns, '2026-09-29')).toEqual({});
+    expect(addTurn(turns, 'b', '2026-09-29').counts).toEqual({ b: 1 });
+  });
+});
+
+describe('team maker', () => {
+  it('puts everyone in exactly one team, with sizes within one of each other', () => {
+    const kids = Array.from({ length: 11 }, (_, i) => `k${i}`);
+    for (const count of [2, 3, 4]) {
+      const teams = makeTeams(kids, count, seq(count));
+      expect(teams).toHaveLength(count);
+      expect(teams.flat().sort()).toEqual([...kids].sort());
+      const sizes = teams.map((t) => t.length);
+      expect(Math.max(...sizes) - Math.min(...sizes)).toBeLessThanOrEqual(1);
+    }
+  });
+  it('mixes the class differently each time', () => {
+    const kids = Array.from({ length: 12 }, (_, i) => i);
+    const rng = seq(3);
+    expect(makeTeams(kids, 2, rng)).not.toEqual(makeTeams(kids, 2, rng));
+  });
+});
+
+describe('noise meter', () => {
+  it('maps silence to 0, full scale to 100 and −30 dB to the middle', () => {
+    expect(noiseLevel(0)).toBe(0);
+    expect(noiseLevel(1)).toBe(100);
+    expect(noiseLevel(10 ** (-30 / 20))).toBe(50);
+    expect(noiseLevel(1e-6)).toBe(0);
   });
 });

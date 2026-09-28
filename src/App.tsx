@@ -21,9 +21,11 @@ import { SetupWizard } from './pages/SetupWizard';
 import { TimetablePage } from './pages/TimetablePage';
 import { TodayPage } from './pages/TodayPage';
 import { DiceTool } from './pages/tools/DiceTool';
+import { NoiseTool } from './pages/tools/NoiseTool';
 import { PickerTool } from './pages/tools/PickerTool';
 import { ScoreboardTool } from './pages/tools/ScoreboardTool';
 import { StagesTool } from './pages/tools/StagesTool';
+import { TeamsTool } from './pages/tools/TeamsTool';
 import { TimerTool } from './pages/tools/TimerTool';
 import { ToolsHome } from './pages/tools/ToolsHome';
 import { WheelTool } from './pages/tools/WheelTool';
@@ -52,6 +54,8 @@ const router = createHashRouter([
       { path: 'tools/dice', element: <DiceTool /> },
       { path: 'tools/wheel', element: <WheelTool /> },
       { path: 'tools/stages', element: <StagesTool /> },
+      { path: 'tools/teams', element: <TeamsTool /> },
+      { path: 'tools/noise', element: <NoiseTool /> },
       { path: 'groups', element: <GroupsPage /> },
       { path: 'groups/:id', element: <GroupPage /> },
       { path: 'curriculum', element: <CurriculumPage /> },

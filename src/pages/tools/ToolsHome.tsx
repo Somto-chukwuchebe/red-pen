@@ -1,4 +1,4 @@
-import { Dices, Disc3, ListOrdered, Timer, Trophy, UserRound } from 'lucide-react';
+import { AudioLines, Dices, Disc3, ListOrdered, Timer, Trophy, UserRound, UsersRound } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router';
 import { PageHeader } from '../../components/ui';
 import { useT } from '../../i18n';
@@ -11,11 +11,13 @@ export function ToolsHome() {
   const q = group ? `?group=${group}` : '';
   const tools = [
     { to: `/tools/picker${q}`, icon: <UserRound size={36} />, ...t.tools.picker },
+    { to: `/tools/teams${q}`, icon: <UsersRound size={36} />, ...t.tools.teamMaker },
     { to: '/tools/scoreboard', icon: <Trophy size={36} />, ...t.tools.scoreboard },
     { to: '/tools/timer', icon: <Timer size={36} />, ...t.tools.timer },
     { to: '/tools/dice', icon: <Dices size={36} />, ...t.tools.dice },
     { to: `/tools/wheel${q}`, icon: <Disc3 size={36} />, ...t.tools.wheel },
     { to: `/tools/stages${q}`, icon: <ListOrdered size={36} />, ...t.tools.stages },
+    { to: '/tools/noise', icon: <AudioLines size={36} />, ...t.tools.noise },
   ];
   return (
     <>

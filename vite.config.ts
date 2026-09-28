@@ -11,7 +11,7 @@ const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base,
-  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  define: { __APP_VERSION__: JSON.stringify(pkg.version), __BUILD_DATE__: JSON.stringify(new Date().toISOString()) },
   // React + router + database + icons come to ~180 KB gzipped: fine for an app that's cached after the first visit.
   build: { chunkSizeWarningLimit: 800 },
   plugins: [

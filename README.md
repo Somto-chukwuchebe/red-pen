@@ -55,11 +55,13 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
 
 | Tool | What it does | Keys |
 |---|---|---|
-| **Random student** | Picks a name from the group. Nobody is picked twice until everyone has had a turn, and the same child is never picked twice in a row across rounds. **New round** starts again. | Space or Enter: pick |
+| **Random student** | Picks a name from the group. Nobody is picked twice until everyone has had a turn, and the same child is never picked twice in a row across rounds. **New round** starts again. Each pick is marked (⤮ ×1) next to the child's name in that day's lesson log, to help you rate participation. | Space or Enter: pick |
+| **Team maker** | Splits the group into 2–4 random teams of even size. Tap anyone who's away to leave them out. **Use on the scoreboard** puts the teams, with their names, on the scoreboard. | Space or Enter: make teams |
 | **Scoreboard** | 2–4 teams with big + and − buttons. Team names can be edited; scores are kept until you reset. | 1–4: add a point · Shift+1–4: take one away |
 | **Timer** | 1, 2, 3, 5 or 10 minutes, or your own time. Beeps at the end. It works from the clock, so it stays right even if the screen sleeps. | Space: start/pause · R: reset |
 | **Dice** | 1–3 dice, with the total. | Space or Enter: roll |
 | **Spinner wheel** | Your own list, the group's names, or the key words of the next lesson. Can remove each result so it doesn't come up again. | Space or Enter: spin |
+| **Noise meter** | Listens through the microphone and shows how loud the room is, with a line you move to set "too loud" and an optional beep. It only changes after a second, so one dropped book doesn't set it off. Nothing is recorded or sent anywhere. The first time, the browser asks to use the microphone. | — |
 | **Lesson stages** | Walks through the next lesson's plan (or your lesson framework) with a countdown for each stage and the time left in the lesson. Beeps once when a stage's time is up, then shows overtime in amber. | Space: start/pause · ←/→: stage |
 
 On iPhone the beep only plays after you've tapped the screen once, and not when the phone is on silent.
@@ -182,6 +184,14 @@ One-time setup:
 4. Open the **Actions** tab and wait for "Deploy to GitHub Pages" to turn green (about 2 minutes). Your app is live at the address above.
 
 After that, every `git push` publishes the new version automatically. Installed copies update themselves the next time they're opened with internet.
+
+**To update an installed copy straight away:**
+
+- **iPhone:** swipe up from the bottom of the screen and pause to see your open apps, swipe Red Pen away, then open it again from the home screen (with internet). If nothing changed, do it once more: the first opening downloads the new version, the next one shows it.
+- **Mac:** quit Red Pen (⌘Q) and open it again, or press ⌘R in its window.
+- **Any device:** **Settings → Check for updates** (at the bottom). If there's a new version, Red Pen restarts by itself. The line next to the button shows the version and the date it was published, so you can compare devices.
+
+Your data isn't touched by an update.
 
 The workflow is in `.github/workflows/deploy.yml`. It runs the tests first and won't publish if any fail.
 

@@ -1,4 +1,4 @@
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { RefreshCw, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { CurriculumImport } from '../components/CurriculumImport';
 import { CalendarFields, cleanCalendar, type CalendarValue } from '../components/CalendarFields';
 import { useEffect, useState } from 'react';
@@ -13,11 +13,19 @@ import { DEFAULT_FLAG_RULE } from '../lib/participation';
 import { bytes } from '../lib/format';
 import { detectPlatform } from '../lib/platform';
 import { requestPersistentStorage, storageState, type PersistState } from '../lib/storage';
+import { checkForUpdate } from '../lib/update';
 
 export function SettingsPage() {
   const t = useT();
   const toast = useToast();
   const settings = useSettings();
+  const [checking, setChecking] = useState(false);
+  const checkUpdates = async () => {
+    setChecking(true);
+    const result = await checkForUpdate();
+    setChecking(false);
+    toast(result === 'updating' ? t.settings.updating : result === 'latest' ? t.settings.upToDate : t.settings.updateOffline);
+  };
   const deviceName = useLocal<string>('deviceName');
   if (!settings) return null;
   const set = (changes: Partial<Settings>) => patch<Settings>('settings', settings.id, changes);
@@ -86,9 +94,14 @@ export function SettingsPage() {
           <CurriculumImport />
         </Card>
 
-        <p className="text-sm text-ink-soft">
-          {t.appName} · {t.settings.version(__APP_VERSION__)}
-        </p>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-ink-soft">
+          <span>
+            {t.appName} · {t.settings.version(__APP_VERSION__)} · {t.settings.builtOn(new Date(__BUILD_DATE__).toLocaleDateString(t.locale, { day: 'numeric', month: 'long', year: 'numeric' }))}
+          </span>
+          <Button size="sm" icon={<RefreshCw size={16} />} disabled={checking} onClick={checkUpdates}>
+            {t.settings.checkUpdates}
+          </Button>
+        </div>
       </div>
     </>
   );

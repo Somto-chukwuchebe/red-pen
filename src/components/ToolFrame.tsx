@@ -4,16 +4,28 @@ import { useNavigate } from 'react-router';
 import { useT } from '../i18n';
 import { Button } from './ui';
 
+/** Reads a value a tool saved on this device (see useStored). */
+export function readStored<T>(key: string, initial: T): T {
+  try {
+    const raw = localStorage.getItem(`rp-tool-${key}`);
+    return raw ? (JSON.parse(raw) as T) : initial;
+  } catch {
+    return initial;
+  }
+}
+
+/** Saves a value for another tool to pick up (e.g. the team maker filling the scoreboard). */
+export function writeStored<T>(key: string, value: T) {
+  try {
+    localStorage.setItem(`rp-tool-${key}`, JSON.stringify(value));
+  } catch {
+    /* private mode */
+  }
+}
+
 /** Remembers a value on this device (e.g. scores), so a reload or a trip to another screen keeps it. */
 export function useStored<T>(key: string, initial: T): [T, (v: T | ((old: T) => T)) => void] {
-  const [value, setValue] = useState<T>(() => {
-    try {
-      const raw = localStorage.getItem(`rp-tool-${key}`);
-      return raw ? (JSON.parse(raw) as T) : initial;
-    } catch {
-      return initial;
-    }
-  });
+  const [value, setValue] = useState<T>(() => readStored(key, initial));
   useEffect(() => {
     try {
       localStorage.setItem(`rp-tool-${key}`, JSON.stringify(value));

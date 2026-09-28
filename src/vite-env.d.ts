@@ -2,3 +2,5 @@
 /// <reference types="vite-plugin-pwa/client" />
 
 declare const __APP_VERSION__: string;
+/** When this copy of the app was built (ISO date-time). */
+declare const __BUILD_DATE__: string;
