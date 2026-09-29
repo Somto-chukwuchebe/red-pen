@@ -96,6 +96,15 @@ export const en = {
     noGroups: 'Add your groups first, then your timetable.',
   },
 
+  parentMessage: {
+    button: 'Message to parents',
+    buttonHint: 'A short, friendly update from the last 8 lessons: attendance, participation, what they can do. You can edit it before sending.',
+    title: (name: string) => `Message about ${name}`,
+    fresh: 'Start again',
+    share: 'Share',
+    hint: 'Written on this device from your logs — nothing is sent anywhere. Your private notes about the child are never included. Check and edit it, then copy it into Telegram, WhatsApp or email.',
+  },
+
   backupReminder: {
     never: 'You haven’t backed up this device yet.',
     old: (days: number) => `Your last backup was ${days} days ago.`,

@@ -1,11 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Camera, Check, Download, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Camera, Check, Download, FileText, MessageSquareText, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { LogSheet, type LogTarget } from '../components/LogSheet';
 import { ClassTrend, ParticipationGrid } from '../components/ParticipationViews';
 import { LowFlag } from '../components/Rating';
 import { TermSummaryDialog } from '../components/TermSummary';
+import { ParentMessageDialog } from '../components/ParentMessage';
 import { useToast } from '../components/Toast';
 import { BareInput, Button, Card, Dialog, EmptyState, LinkButton, SectionTitle, Segmented, Select, TextArea, TextInput, Toggle, cx } from '../components/ui';
 import { shareOrDownload } from '../db/backup';
@@ -276,14 +277,16 @@ function Roster({ group, students }: { group: Group; students: Student[] }) {
         <TextArea label={t.groupPage.namesLabel} hint={t.groupPage.namesHint} rows={8} value={names} onChange={(e) => setNames(e.target.value)} autoFocus />
       </Dialog>
 
-      {editing && <StudentEditor student={editing} onClose={() => setEditing(null)} />}
+      {editing && <StudentEditor group={group} student={editing} onClose={() => setEditing(null)} />}
     </Card>
   );
 }
 
-function StudentEditor({ student, onClose }: { student: Student; onClose: () => void }) {
+function StudentEditor({ group, student, onClose }: { group: Group; student: Student; onClose: () => void }) {
   const t = useT();
   const [s, setS] = useState(student);
+  const [messaging, setMessaging] = useState(false);
+  if (messaging) return <ParentMessageDialog group={group} student={student} onClose={onClose} />;
   return (
     <Dialog
       open
@@ -305,6 +308,14 @@ function StudentEditor({ student, onClose }: { student: Student; onClose: () => 
         <TextInput label={t.common.name} value={s.name} onChange={(e) => setS({ ...s, name: e.target.value })} />
         <TextArea label={t.common.notes} rows={3} value={s.notes} onChange={(e) => setS({ ...s, notes: e.target.value })} />
         <Toggle label={t.groupPage.activeStudent} hint={t.groupPage.activeHint} checked={s.active} onChange={(active) => setS({ ...s, active })} />
+        {student.active && (
+          <div className="rounded-xl bg-sunk p-3">
+            <Button icon={<MessageSquareText size={16} />} onClick={() => setMessaging(true)}>
+              {t.parentMessage.button}
+            </Button>
+            <p className="mt-2 text-sm text-ink-soft">{t.parentMessage.buttonHint}</p>
+          </div>
+        )}
       </div>
     </Dialog>
   );
