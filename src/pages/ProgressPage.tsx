@@ -1,8 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { AlertTriangle, CheckCircle2, TrendingDown, TrendingUp } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardCheck, TrendingDown, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router';
 import { LowFlag, ratingStyle } from '../components/Rating';
-import { Card, EmptyState, GroupDot, PageHeader, SectionTitle, cx } from '../components/ui';
+import { Card, EmptyState, GroupDot, LinkButton, PageHeader, SectionTitle, cx } from '../components/ui';
 import { db } from '../db/db';
 import { useFlagRule, useSettings } from '../db/hooks';
 import { useT } from '../i18n';
@@ -46,7 +46,15 @@ export function ProgressPage() {
 
   return (
     <>
-      <PageHeader title={t.progress.title} subtitle={t.progress.subtitle} />
+      <PageHeader
+        title={t.progress.title}
+        subtitle={t.progress.subtitle}
+        actions={
+          <LinkButton to="/term-check">
+            <ClipboardCheck size={16} aria-hidden /> {t.termCheck.title}
+          </LinkButton>
+        }
+      />
 
       {/* Headline numbers */}
       <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -28,6 +28,7 @@ import { StagesTool } from './pages/tools/StagesTool';
 import { TeamsTool } from './pages/tools/TeamsTool';
 import { TimerTool } from './pages/tools/TimerTool';
 import { ToolsHome } from './pages/tools/ToolsHome';
+import { TermCheckPage } from './pages/TermCheckPage';
 import { WheelTool } from './pages/tools/WheelTool';
 import { WeekPage } from './pages/WeekPage';
 
@@ -47,6 +48,7 @@ const router = createHashRouter([
       { path: 'print/:lessonId', element: <PrintCardPage /> },
       { path: 'library', element: <LibraryPage /> },
       { path: 'progress', element: <ProgressPage /> },
+      { path: 'term-check', element: <TermCheckPage /> },
       { path: 'tools', element: <ToolsHome /> },
       { path: 'tools/picker', element: <PickerTool /> },
       { path: 'tools/scoreboard', element: <ScoreboardTool /> },

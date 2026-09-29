@@ -96,6 +96,21 @@ export const en = {
     noGroups: 'Add your groups first, then your timetable.',
   },
 
+  termCheck: {
+    title: 'Term check',
+    subtitle: 'Before the end of term: what’s still missing in each group.',
+    ready: 'Ready',
+    readyCount: (n: number, all: number) => `${n} of ${all} groups ready`,
+    toDo: (n: number) => (n === 1 ? '1 thing to do' : `${n} things to do`),
+    taught: (n: number) => (n === 1 ? '1 lesson logged' : `${n} lessons logged`),
+    unlogged: (n: number) => (n === 1 ? '1 lesson not logged:' : `${n} lessons not logged:`),
+    unrated: (n: number) => (n === 1 ? '1 student with no rating this term:' : `${n} students with no rating this term:`),
+    unmarked: (n: number) => (n === 1 ? '1 can-do statement not marked:' : `${n} can-do statements not marked:`),
+    markThem: 'Mark on the group page',
+    noLessons: 'No lessons logged or scheduled this term:',
+    hint: 'Counts lessons from the start of term up to today. Can-do statements count for the modules you taught this term; a mark for the whole group or for any student counts.',
+  },
+
   parentMessage: {
     button: 'Message to parents',
     buttonHint: 'A short, friendly update from the last 8 lessons: attendance, participation, what they can do. You can edit it before sending.',
