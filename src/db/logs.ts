@@ -1,7 +1,7 @@
 // Saving lesson logs: the log itself, who spoke, and moving the group's
 // lesson pointer on — all in one step.
 
-import type { ID, ISODate, LessonLog, LogStatus, Participation } from '../domain/types';
+import type { ID, ISODate, LessonLog, LogStatus, Participation, StoredFile } from '../domain/types';
 import { orderedLessons, pointerAfterLog } from '../lib/pointer';
 import { db } from './db';
 import { newId, touchLocal } from './repo';
@@ -21,6 +21,10 @@ export interface LogDraft {
   ratings: Record<ID, number>;
   gameIds: ID[];
   notes: string;
+  /** Photos kept with the log (existing ones and any in `newPhotos`). */
+  photoIds?: ID[];
+  /** Photos added in this sitting, saved together with the log. */
+  newPhotos?: StoredFile[];
   /**
    * Where the group's pointer goes next. `undefined` = automatic
    * (moves on for a new, taught lesson; unchanged when editing an old log).
@@ -62,8 +66,12 @@ export async function saveLog(draft: LogDraft): Promise<LessonLog> {
     absentStudentIds: draft.absentStudentIds,
     gameIds: draft.gameIds,
     notes: draft.notes.trim(),
+    ...(draft.photoIds?.length ? { photoIds: draft.photoIds } : {}),
     updatedAt: now,
   };
+  const photoIds = draft.photoIds ?? [];
+  const addedPhotos = (draft.newPhotos ?? []).filter((f) => photoIds.includes(f.id)).map((f) => ({ ...f, updatedAt: now }));
+  const removedPhotos = ((isNew ? undefined : (await db.logs.get(id))?.photoIds) ?? []).filter((p) => !photoIds.includes(p));
   const absent = new Set(draft.absentStudentIds);
   // Older logs counted how often students spoke; keep those counts when editing.
   const previous = new Map((await db.participation.where('lessonLogId').equals(id).toArray()).map((p) => [p.studentId, p]));
@@ -88,7 +96,10 @@ export async function saveLog(draft: LogDraft): Promise<LessonLog> {
   if (draft.nextPointer !== undefined) pointer = draft.nextPointer;
   else if (isNew && group) pointer = pointerAfterLog(await curriculumOrder(group.curriculumKey), pointer, draft.plannedLessonId, draft.status);
 
-  await db.transaction('rw', [db.logs, db.participation, db.groups, db.tombstones], async () => {
+  await db.transaction('rw', [db.logs, db.participation, db.groups, db.files, db.tombstones], async () => {
+    await db.files.bulkPut(addedPhotos);
+    await db.files.bulkDelete(removedPhotos);
+    await db.tombstones.bulkPut(removedPhotos.map((fid) => ({ id: `files:${fid}`, table: 'files', recordId: fid, deletedAt: now })));
     const old = await db.participation.where('lessonLogId').equals(id).toArray();
     const keep = new Set(participation.map((p) => p.id));
     const gone = old.filter((p) => !keep.has(p.id)).map((p) => p.id);
@@ -104,13 +115,16 @@ export async function saveLog(draft: LogDraft): Promise<LessonLog> {
 
 export async function deleteLog(id: ID) {
   const now = Date.now();
-  await db.transaction('rw', [db.logs, db.participation, db.tombstones], async () => {
+  await db.transaction('rw', [db.logs, db.participation, db.files, db.tombstones], async () => {
     const parts = await db.participation.where('lessonLogId').equals(id).toArray();
+    const photos = (await db.logs.get(id))?.photoIds ?? [];
     await db.participation.bulkDelete(parts.map((p) => p.id));
+    await db.files.bulkDelete(photos);
     await db.logs.delete(id);
     await db.tombstones.bulkPut([
       { id: `logs:${id}`, table: 'logs', recordId: id, deletedAt: now },
       ...parts.map((p) => ({ id: `participation:${p.id}`, table: 'participation', recordId: p.id, deletedAt: now })),
+      ...photos.map((fid) => ({ id: `files:${fid}`, table: 'files', recordId: fid, deletedAt: now })),
     ]);
   });
   await touchLocal();
@@ -135,6 +149,7 @@ export async function deleteGroup(groupId: ID) {
     await del('changes', changes.map((x) => x.id));
     await del('students', students.map((x) => x.id));
     await del('logs', logs.map((x) => x.id));
+    await del('files', logs.flatMap((x) => x.photoIds ?? []));
     await del('participation', parts.map((x) => x.id));
     await del('canDoMarks', marks.map((x) => x.id));
     await del('teacherSync', syncs.map((x) => x.id));

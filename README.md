@@ -35,6 +35,8 @@ A teaching workspace: today's lessons, the year's curriculum, the timetable, gro
   3. Tap what worked, and optionally the class energy (1–5, or press the number keys) and a note.
   4. Tap **Done** or press **D**.
 
+  **Photos** (optional): at the bottom of the log, **Add photo** takes a picture or picks one from your library: the board, a poster, students' work. Up to 6 per lesson. They're made smaller (1600 px, a few hundred KB) so backups and sync stay quick, and they go into backups and sync like everything else. Tap a photo to see it full size; the lesson history on the group page shows 📷 on lessons with photos.
+
   The group then moves on to its next planned lesson automatically. Cancelled lessons and test-week reviews don't move it on, and you can change where it goes under "Next time".
 
   **Low participation:** by default, a child rated 1–2 in each of their last 3 or more rated lessons (absences and unrated lessons are skipped) is flagged in amber ⚠ in the log, on the group page and on **Progress**. You can change where the flag starts in **Settings → Participation flags**: what counts as low (1 only, 1–2 or 1–3) and how many lessons in a row (2–6).

@@ -157,6 +157,8 @@ export interface LessonLog extends Stamped {
   absentStudentIds: ID[];
   gameIds: ID[];
   notes: string;
+  /** Photos taken in the lesson (the board, students' work…), stored in `files`. */
+  photoIds?: ID[];
 }
 
 // ─── Students and progress ──────────────────────────────────────────────

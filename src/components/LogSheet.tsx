@@ -2,12 +2,15 @@
 // present", so a normal lesson is: Everyone 4 → adjust the few who stood out → what worked → Done (D).
 
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Check, Plus, Shuffle } from 'lucide-react';
+import { Camera, Check, Plus, Shuffle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { db } from '../db/db';
 import { deleteLog, saveLog, type LogDraft } from '../db/logs';
-import type { ID, ISODate, LogStatus } from '../domain/types';
+import type { ID, ISODate, LogStatus, StoredFile } from '../domain/types';
+import { newId } from '../db/repo';
+import { shrinkPhoto } from '../lib/images';
+import { PhotoThumb, PhotoViewer } from './Photos';
 import { useT } from '../i18n';
 import { shortDate } from '../lib/format';
 import { lowStreak, studentHistory } from '../lib/participation';
@@ -18,6 +21,8 @@ import { readStored } from './ToolFrame';
 import { turnsOn, type Turns } from '../lib/tools';
 import { useToast } from './Toast';
 import { Button, Dialog, Segmented, cx } from './ui';
+
+const MAX_PHOTOS = 6;
 
 export interface LogTarget {
   groupId: ID;
@@ -54,13 +59,19 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
     // Earlier lessons, to show who has had low participation lately.
     const history = (await db.logs.where('groupId').equals(group.id).toArray()).filter((l) => l.id !== existing?.id && l.date <= target.date);
     const historyParts = await db.participation.where('lessonLogId').anyOf(history.map((l) => l.id)).toArray();
-    return { group, existing, students, parts, modules, lessons, history, historyParts };
+    const photos = existing?.photoIds?.length ? (await db.files.bulkGet(existing.photoIds)).filter((f): f is StoredFile => !!f) : [];
+    return { group, existing, students, parts, modules, lessons, history, historyParts, photos };
   }, [target.groupId, target.logId, target.occurrenceKey]);
 
   const [draft, setDraft] = useState<LogDraft | null>(null);
   const [customWorked, setCustomWorked] = useState('');
   const [pointerChoice, setPointerChoice] = useState<string>('auto');
+  const [viewing, setViewing] = useState<ID | null>(null);
+  const [addingPhotos, setAddingPhotos] = useState(false);
+  const photoInput = useRef<HTMLInputElement>(null);
   const saving = useRef(false);
+  // Who the random picker chose in this lesson's day (kept on this device only).
+  const turns = useMemo(() => turnsOn(readStored<Record<string, Turns>>('turns', {})[target.groupId], target.date), [target.groupId, target.date]);
 
   // Build the draft once the data has loaded.
   useEffect(() => {
@@ -82,6 +93,7 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
             ratings: Object.fromEntries(parts.filter((p) => p.rating != null).map((p) => [p.studentId, p.rating as number])),
             gameIds: existing.gameIds,
             notes: existing.notes,
+            photoIds: existing.photoIds ?? [],
           }
         : {
             groupId: group.id,
@@ -96,6 +108,7 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
             ratings: {},
             gameIds: [],
             notes: '',
+            photoIds: [],
           },
     );
   }, [data, draft, target.date, target.occurrenceKey]);
@@ -148,8 +161,6 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
   const set = (p: Partial<LogDraft>) => setDraft((d) => (d ? { ...d, ...p } : d));
   // Taps can come faster than re-renders, so these build on the latest draft.
   const update = (fn: (d: LogDraft) => Partial<LogDraft>) => setDraft((d) => (d ? { ...d, ...fn(d) } : d));
-  // Who the random picker chose in this lesson's day (kept on this device only).
-  const turns = useMemo(() => turnsOn(readStored<Record<string, Turns>>('turns', {})[target.groupId], target.date), [target.groupId, target.date]);
   const lessonLabel = (id: ID | null) => {
     const l = id ? lessonById.get(id) : undefined;
     return l ? `${moduleById.get(l.moduleId)?.title ?? ''} · ${l.label}` : t.log.noLesson;
@@ -157,6 +168,28 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
   const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const workedOptions = [...new Set([...t.log.workedPresets, ...(draft?.whatWorked ?? [])])];
   const presentCount = data ? data.students.length - (draft?.absentStudentIds.length ?? 0) : 0;
+  const photoById = new Map([...(data?.photos ?? []), ...(draft?.newPhotos ?? [])].map((f) => [f.id, f]));
+  const photoIds = (draft?.photoIds ?? []).filter((id) => photoById.has(id));
+  const photoLabel = (i: number) => t.log.photoN(i + 1);
+
+  async function addPhotos(files: FileList | null) {
+    if (!files?.length || !data) return;
+    setAddingPhotos(true);
+    try {
+      const room = MAX_PHOTOS - photoIds.length;
+      const added: StoredFile[] = [];
+      for (const file of [...files].slice(0, room)) {
+        const blob = await shrinkPhoto(file);
+        const n = photoIds.length + added.length + 1;
+        added.push({ id: newId('photo'), name: `${data.group.name} ${target.date} ${n}.jpg`, type: blob.type || 'image/jpeg', size: blob.size, blob, updatedAt: 0 });
+      }
+      if (files.length > room) toast(t.log.photoLimit(MAX_PHOTOS));
+      update((d) => ({ photoIds: [...(d.photoIds ?? []), ...added.map((f) => f.id)], newPhotos: [...(d.newPhotos ?? []), ...added] }));
+    } finally {
+      setAddingPhotos(false);
+      if (photoInput.current) photoInput.current.value = '';
+    }
+  }
 
   return (
     <Dialog
@@ -381,6 +414,31 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
             <textarea value={draft.notes} onChange={(e) => set({ notes: e.target.value })} rows={2} placeholder={t.common.optional} className="rounded-xl border border-line bg-paper px-3 py-2" />
           </label>
 
+          {/* Photos: the board, a poster, students' work */}
+          <section>
+            <h3 className="mb-1 font-semibold">{t.log.photos}</h3>
+            <p className="mb-2 text-sm text-ink-soft">{t.log.photoHint}</p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              {photoIds.map((id, i) => (
+                <PhotoThumb key={id} blob={photoById.get(id)!.blob} label={photoLabel(i)} onOpen={() => setViewing(id)} onRemove={() => update((d) => ({ photoIds: (d.photoIds ?? []).filter((x) => x !== id) }))} />
+              ))}
+              {photoIds.length < MAX_PHOTOS && (
+                <>
+                  <input ref={photoInput} type="file" accept="image/*" multiple className="sr-only" aria-hidden tabIndex={-1} onChange={(e) => void addPhotos(e.target.files)} />
+                  <button
+                    type="button"
+                    onClick={() => photoInput.current?.click()}
+                    disabled={addingPhotos}
+                    className="flex h-24 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line text-sm text-ink-soft hover:bg-sunk disabled:opacity-50"
+                  >
+                    <Camera size={22} aria-hidden />
+                    {t.log.addPhoto}
+                  </button>
+                </>
+              )}
+            </div>
+          </section>
+
           {/* Where the group goes next */}
           {ordered.length > 0 && (
             <section className="rounded-xl bg-sunk p-3">
@@ -400,6 +458,7 @@ function LogSheetInner({ target, onClose, onSaved }: { target: LogTarget; onClos
           )}
         </div>
       )}
+      {viewing && photoById.get(viewing) && <PhotoViewer blob={photoById.get(viewing)!.blob} label={photoLabel(photoIds.indexOf(viewing))} onClose={() => setViewing(null)} />}
     </Dialog>
   );
 }

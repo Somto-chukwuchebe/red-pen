@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Check, Download, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Camera, Check, Download, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { LogSheet, type LogTarget } from '../components/LogSheet';
@@ -186,6 +186,11 @@ export function GroupPage() {
                     <span className="w-28 shrink-0 font-medium first-letter:uppercase">{shortDate(t.locale, l.date)}</span>
                     <span className={cx('rounded-full px-2 py-0.5 text-xs font-semibold', l.status === 'taught' ? 'bg-pen-soft text-pen' : 'bg-sunk text-ink-soft')}>{t.log.statuses[l.status]}</span>
                     <span className="min-w-0 flex-1">{label(l.plannedLessonId)}</span>
+                    {!!l.photoIds?.length && (
+                      <span className="inline-flex items-center gap-1 text-sm text-ink-soft">
+                        <Camera size={14} aria-hidden /> {t.log.photoCount(l.photoIds.length)}
+                      </span>
+                    )}
                     {students.length > 0 && l.status !== 'cancelled' && (
                       <span className="text-sm text-ink-soft">{t.log.present(students.filter((s) => s.active).length - l.absentStudentIds.length, students.filter((s) => s.active).length)}</span>
                     )}
