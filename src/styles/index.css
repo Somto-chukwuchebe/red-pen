@@ -94,10 +94,13 @@ html {
 html.dark {
   color-scheme: dark;
 }
+html,
+body {
+  overscroll-behavior: none;
+}
 body {
   font-family: var(--font-sans);
   min-height: 100dvh;
-  overscroll-behavior-y: none;
 }
 h1,
 h2,
@@ -136,6 +139,13 @@ h3 {
   #main {
     padding: 0 !important;
     max-width: none !important;
+  }
+  /* The on-screen frame scrolls inside itself; on paper everything flows onto the pages. */
+  .app-shell,
+  .app-scroll {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
   }
   .print-card {
     font-size: 11pt;

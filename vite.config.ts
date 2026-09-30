@@ -37,7 +37,9 @@ export default defineConfig({
       },
       workbox: {
         // Everything the app needs is cached on first visit, so it works fully offline.
-        globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,woff2,webmanifest}'],
+        // (No "webmanifest" here: the plugin adds the manifest itself, and listing a file
+        // twice makes the service worker fail silently — scripts/check-sw.mjs guards this.)
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,woff2}'],
         globIgnores: ['**/apple-splash-*.png'],
         navigateFallback: 'index.html',
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

@@ -132,7 +132,7 @@ export function FastEntry({ versionId, slots, groups, weekdays }: { versionId: s
           </li>
         ))}
       </ul>
-      <div className="sticky bottom-20 flex justify-end md:bottom-4">
+      <div className="sticky bottom-4 flex justify-end">
         <Button variant="primary" size="lg" onClick={saveAll}>
           {t.timetable.fastSave(preview.length)}
         </Button>

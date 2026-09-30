@@ -103,12 +103,15 @@ export function WeekPage() {
                           type="button"
                           onClick={() => open(o)}
                           className={cx('flex min-h-12 w-full items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left text-sm', swatch[st])}
-                          aria-label={`${g?.name} ${o.start} · ${t.week.status[st]}`}
+                          aria-label={`${g?.name} ${o.start}${o.room ? ` · ${t.common.roomLabel(o.room)}` : ''} · ${t.week.status[st]}`}
                         >
                           {g && <GroupDot colour={g.colour} />}
                           <span className="min-w-0 flex-1">
                             <span className={cx('block font-semibold', st === 'cancelled' && 'line-through')}>{g?.name}</span>
-                            <span className="block tabular-nums text-ink-soft">{o.start}</span>
+                            <span className="block truncate tabular-nums text-ink-soft">
+                              {o.start}
+                              {o.room && ` · ${t.common.roomLabel(o.room)}`}
+                            </span>
                           </span>
                           {st === 'taught' && <Check size={18} className="shrink-0 text-pen" aria-hidden />}
                           {st === 'unlogged' && <span className="shrink-0 text-xs font-semibold text-amber">{t.log.logIt}</span>}

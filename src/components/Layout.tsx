@@ -1,5 +1,5 @@
 import { BookOpen, CalendarDays, CalendarRange, ChartLine, Dices, Download, House, Menu, Presentation, Settings, Share2, Users } from 'lucide-react';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { useAppBadge } from '../db/hooks';
 import { useT } from '../i18n';
@@ -17,8 +17,9 @@ export function Layout() {
   const { pathname } = useLocation();
   useAppBadge();
   // Each page opens at the top.
+  const scroller = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (scroller.current) scroller.current.scrollTop = 0;
   }, [pathname]);
 
   const main: Item[] = [
@@ -39,13 +40,15 @@ export function Layout() {
   const moreActive = ['/more', '/library', '/progress', '/tools', ...extra.map((e) => e.to)].some((p) => pathname.startsWith(p));
 
   return (
-    <div className="min-h-dvh md:flex">
+    // An app-style frame: the page scrolls inside its own area and the tab bar sits below it.
+    // (A `position: fixed` bar over a scrolling page can drift up the screen on iPhone.)
+    <div className="app-shell flex h-dvh flex-col md:flex-row">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-card focus:px-3 focus:py-2">
         {t.nav.skip}
       </a>
 
       {/* Sidebar: tablets, laptops, projector */}
-      <nav aria-label={t.nav.menu} className="no-print sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-line bg-sunk/60 safe-top md:block">
+      <nav aria-label={t.nav.menu} className="no-print hidden w-60 shrink-0 overflow-y-auto border-r border-line bg-sunk/60 safe-top md:block">
         <div className="flex flex-col gap-1 p-4">
         <div className="mb-6 flex items-center gap-2.5 px-2">
           <Logo size={34} />
@@ -62,14 +65,14 @@ export function Layout() {
       </nav>
 
       {/* The notch/home-bar padding lives on this wrapper so it adds to the page margins instead of replacing them. */}
-      <div className="min-w-0 flex-1 safe-top safe-x">
-        <main id="main" className="mx-auto w-full max-w-6xl px-4 pt-4 pb-28 sm:px-6 md:pt-8 md:pb-12 lg:px-10">
+      <div ref={scroller} className="app-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain safe-top safe-x">
+        <main id="main" className="mx-auto w-full max-w-6xl px-4 pt-4 pb-8 sm:px-6 md:pt-8 md:pb-12 lg:px-10">
           <Outlet />
         </main>
       </div>
 
       {/* Bottom tab bar: phones */}
-      <nav aria-label={t.nav.menu} className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card/95 backdrop-blur safe-bottom safe-x md:hidden">
+      <nav aria-label={t.nav.menu} className="no-print shrink-0 border-t border-line bg-card safe-bottom safe-x md:hidden">
         <ul className="grid grid-cols-5">
           {main.map((i) => (
             <li key={i.to}>

@@ -1,11 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Check, ExternalLink, Pencil, Presentation } from 'lucide-react';
+import { ArrowLeft, Check, ExternalLink, MapPin, Pencil, Presentation } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { LogSheet, type LogTarget } from '../components/LogSheet';
 import { Button, Card, EmptyState, LinkButton } from '../components/ui';
 import { db } from '../db/db';
-import { useSettings } from '../db/hooks';
+import { useScheduleData, useSettings } from '../db/hooks';
+import { lessonsForDate } from '../lib/schedule';
 import { isEnglish } from '../db/seed';
 import { useT } from '../i18n';
 import { todayISO } from '../lib/dates';
@@ -22,7 +23,10 @@ export function LessonPage() {
   const occurrenceKey = params.get('key') ?? undefined;
   const start = params.get('start') ?? undefined;
   const settings = useSettings();
+  const schedule = useScheduleData();
   const [logTarget, setLogTarget] = useState<LogTarget | null>(null);
+  // The room comes from the timetable (one-off changes included), so it's right however the page was opened.
+  const room = schedule && occurrenceKey ? lessonsForDate(schedule, date).find((o) => o.key === occurrenceKey)?.room : undefined;
 
   const data = useLiveQuery(async () => {
     const group = await db.groups.get(groupId);
@@ -69,6 +73,11 @@ export function LessonPage() {
           {longDate(t.locale, date)}
           {start && ` · ${start}`}
         </span>
+        {room && (
+          <span className="inline-flex items-center gap-1 font-medium">
+            <MapPin size={16} aria-hidden /> {t.common.roomLabel(room)}
+          </span>
+        )}
         <LinkButton to={`/tools?group=${group.id}`} size="sm" className="ml-auto">
           <Presentation size={16} aria-hidden /> {t.nav.tools}
         </LinkButton>
@@ -173,7 +182,7 @@ export function LessonPage() {
         )}
       </div>
 
-      <div className="sticky bottom-20 z-10 flex justify-end md:bottom-6">
+      <div className="sticky bottom-4 z-10 flex justify-end md:bottom-6">
         <Button variant="primary" size="lg" icon={<Check size={22} />} onClick={openLog} className="shadow-lg">
           {logged ? t.lessonView.editLog : t.lessonView.done}
           <kbd className="hidden rounded border border-white/40 px-1.5 text-xs sm:inline">D</kbd>
